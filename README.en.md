@@ -2,7 +2,7 @@
 
 # AI DevKit (DevKit · Chinese Edition)
 
-Current version: **A1_V_Φ7_CN**
+Current version: **A1_V_Φ7_Glass_CN** (full-site glassmorphism restyle)
 Repository: https://github.com/bmdy1145/devkit
 
 ## Overview
@@ -17,19 +17,20 @@ The tool organises collaboration around **workflow steps**: for each step you wr
 - **Multiple projects**: project tab bar with create / switch / close; each project keeps its own tabs and editor state
 - **Inspiration sync**: sync the inspiration field across tabs within a project; when turned off, other tabs are cleared
 - **Combined preview**: live preview of the full instruction that will be sent to the AI, with copy, copy-requirement-only, and download-and-copy actions
-- **Spec prompt**: the project's own *Specification Prompt* (role definition, collaboration flow, version architecture and naming rules, mandatory code-completeness rules, dual-version output specification, version-tree drawing rules, etc.), copyable as a whole
+- **Spec prompt**: the project's own *Specification Prompt*, copyable as a whole
 - **Code editor**: synchronised line numbers, paste, copy, clear, upload / drag-and-drop import, export code (multiple extensions), and an "Evolve" action that loads DevKit's own source
 - **AI result area**: paste what the AI returns and overwrite the code area in one click
 - **Version history**: collapsible tree, milestone nodes expanded by default, with expand-all / collapse-all that preserve scroll position
-- **8 themes**: Default Dark, Dark Professional, Soft Transition, Minimal Flat, Glassmorphism, Neon Conflict, Light Simple, Warm Orange
+- **Full-site glassmorphism**: translucent layers, background blur and luminous borders over a multi-layer radial glow backdrop
+- **Three theme choices**: Dark glass / Light glass / Follow system, with the switcher in the top-left; chosen once in the first-run guide and remembered afterwards
 - **Performance mode**: lowers preview refresh frequency (from once per second to on demand)
 - **Config import / export**: export `devkit_config.json`; import supports full overwrite restore
-- **Quick file rename**: pick a directory and rename files to `Deepseek_ + your text + original extension` (deletes the original when the directory API is available)
+- **Quick file rename**: pick a directory and rename files to `Deepseek_ + your text + original extension`
 - **Keyboard shortcut**: `Esc` closes the topmost dialog
 
 ## Usage
 
-1. Download `deepseek_A1_V_Φ7_CN.html`
+1. Download `code/A1_V_Φ7/deepseek_A1_V_Φ7_Glass_CN.html`
 2. Double-click to open it in a browser (Chrome / Edge or any modern browser)
 3. Pick a step under "Workflow Steps" → fill in the inspiration and paste your code → click "Copy" → paste into your AI chat tool
 
@@ -44,33 +45,33 @@ The project uses a "four base layers + cyclic extension" version scheme:
 | 1st | Branch code (A1, A2) | Specified by the user |
 | 2nd | Roman numerals (I, II, III…) | Incremented on a rewrite or major upgrade; lower layers reset |
 | 3rd | Φ + number (Φ1, Φ2…) | Incremental changes on the same Roman-numeral version |
-| 4th | English tag (Fix, Perf, Refactor…) | Minor tweaks and small fixes |
+| 4th | English tag (Fix, Perf, Glass…) | Minor tweaks; appended when the change is below incremental scale, without bumping Φ |
 
 Beyond the 4th layer the scheme cycles as `B1 → I → Ψ1 → English tag → C1 …`, e.g. `A1_I_Φ1_Fix_B1_I_Ψ1_Fix_C1`.
 
 The project maintains two language variants in parallel. They share the same main-line version number and differ only by a trailing suffix: `_CN` (Chinese edition) and `_GLOBAL` (multilingual edition). This repository is the **Chinese edition**.
 
-The full version structure is embedded as a comment at the top of the HTML file, and the tree-shaped history can be viewed in the UI via the "Version Notes" button.
-
 ## Repository Layout
 
 ```
 devkit/
-├── deepseek_A1_V_Φ7_CN.html    # Complete single-file application (HTML + CSS + JS)
-├── index.html                  # GitHub Pages entry page, redirects to the file above
-├── README.md                   # Project documentation (Chinese)
-├── README.en.md                # Project documentation (English)
-├── SECURITY.md                 # Security policy (Chinese)
-├── SECURITY.en.md              # Security policy (English)
-├── LICENSE                     # Full text of the GPLv3 license
-└── .claude/skills/devkit-spec/ # Claude Code skill (spec prompt + 22 workflow prompt templates)
-    ├── SKILL.md
-    └── references/
-        ├── spec-prompt.md
-        └── prompt-templates.md
+├── README.md / README.en.md        # Documentation (must stay at root for GitHub to render it)
+├── SECURITY.md / SECURITY.en.md    # Security policy (must stay at root for the Security tab)
+├── LICENSE                          # Full text of the GPLv3 license (must stay at root)
+├── docs/
+│   └── index.html                   # GitHub Pages entry page, redirects to the latest version file
+├── code/
+│   └── A1_V_Φ7/                     # One folder per main-line version
+│       ├── deepseek_A1_V_Φ7_CN.html
+│       └── deepseek_A1_V_Φ7_Glass_CN.html
+└── .claude/skills/devkit-spec/      # Claude Code skill (version & collaboration spec + version templates)
 ```
 
-> Only `deepseek_A1_V_Φ7_CN.html` is a versioned project artifact; the rest are supporting documentation, the Pages entry file and AI skill files, and are outside the version-numbering scheme.
+> Only the HTML files under `code/` are versioned project artifacts; the three root documents plus `docs/` and `.claude/` are outside the version-numbering scheme.
+
+### Pages deployment note
+
+The site entry lives at `docs/index.html`, so GitHub Pages must publish from **`/docs`** (Settings → Pages → Deploy from a branch → main / `/docs`). If it still points at `/ (root)`, the root URL returns 404.
 
 ## License
 
