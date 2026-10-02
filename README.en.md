@@ -56,8 +56,16 @@ The full version structure is embedded as a comment at the top of the HTML file,
 
 ```
 devkit/
-└── deepseek_A1_V_Φ7_CN.html    # Complete single-file application (HTML + CSS + JS)
+├── deepseek_A1_V_Φ7_CN.html    # Complete single-file application (HTML + CSS + JS)
+├── index.html                  # GitHub Pages entry page, redirects to the file above
+├── README.md                   # Project documentation (Chinese)
+├── README.en.md                # Project documentation (English)
+├── SECURITY.md                 # Security policy (Chinese)
+├── SECURITY.en.md              # Security policy (English)
+└── LICENSE                     # Full text of the GPLv3 license
 ```
+
+> Only `deepseek_A1_V_Φ7_CN.html` is a versioned project artifact; the rest are supporting documentation and the Pages entry file, and are outside the version-numbering scheme.
 
 ## License
 

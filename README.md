@@ -56,8 +56,16 @@ DevKit 是一个**纯 HTML 单文件**的本地开发辅助工具，直接用浏
 
 ```
 devkit/
-└── deepseek_A1_V_Φ7_CN.html    # 完整单文件应用（HTML + CSS + JS）
+├── deepseek_A1_V_Φ7_CN.html    # 完整单文件应用（HTML + CSS + JS）
+├── index.html                  # GitHub Pages 入口引导页，跳转至上述文件
+├── README.md                   # 项目说明（中文）
+├── README.en.md                # 项目说明（英文）
+├── SECURITY.md                 # 安全策略（中文）
+├── SECURITY.en.md              # 安全策略（英文）
+└── LICENSE                     # GPLv3 许可证全文
 ```
+
+> 仅 `deepseek_A1_V_Φ7_CN.html` 是项目版本产物；其余为仓库配套文档与 Pages 入口文件，不参与版本号体系。
 
 ## 许可证
 
