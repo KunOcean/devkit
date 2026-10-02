@@ -62,10 +62,15 @@ devkit/
 ├── README.en.md                # Project documentation (English)
 ├── SECURITY.md                 # Security policy (Chinese)
 ├── SECURITY.en.md              # Security policy (English)
-└── LICENSE                     # Full text of the GPLv3 license
+├── LICENSE                     # Full text of the GPLv3 license
+└── .claude/skills/devkit-spec/ # Claude Code skill (spec prompt + 22 workflow prompt templates)
+    ├── SKILL.md
+    └── references/
+        ├── spec-prompt.md
+        └── prompt-templates.md
 ```
 
-> Only `deepseek_A1_V_Φ7_CN.html` is a versioned project artifact; the rest are supporting documentation and the Pages entry file, and are outside the version-numbering scheme.
+> Only `deepseek_A1_V_Φ7_CN.html` is a versioned project artifact; the rest are supporting documentation, the Pages entry file and AI skill files, and are outside the version-numbering scheme.
 
 ## License
 
