@@ -1108,6 +1108,7 @@ graph LR
 
 示例二：带省略节点的链（Φ 层节点 > 5 个）
 \`\`\`mermaid
+graph LR
   A1 --> A1_II["A1_II"]
   A1_II --> ov["A1_II 推翻起点<br/>based on A1_I_Φ5"]
   ov --> A1_II_Φ1["A1_II_Φ1"] --> omit["Φ2-Φ41 [2]"] --> A1_II_Φ42["A1_II_Φ42"] --> A1_II_Φ43["A1_II_Φ43"] --> A1_II_Φ44["A1_II_Φ44"] --> A1_II_Φ45["A1_II_Φ45"]
@@ -1115,6 +1116,7 @@ graph LR
 
 示例三：分叉（同一罗马数字下存在平行子链）
 \`\`\`mermaid
+graph LR
   A1 --> A1_III["A1_III"]
   A1_III --> ov["A1_III 推翻起点<br/>based on A1_II_Φ45"]
   ov --> A1_III_Φ1["A1_III_Φ1"] --> A1_III_Φ11["A1_III_Φ11"]
