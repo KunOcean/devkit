@@ -1,3 +1,5 @@
+[中文](SECURITY.md) | [English](SECURITY.en.md)
+
 # 安全策略
 
 ## 支持的版本

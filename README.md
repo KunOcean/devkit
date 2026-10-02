@@ -1,3 +1,5 @@
+[中文](README.md) | [English](README.en.md)
+
 # AI 开发快捷工具箱（DevKit · 中文版）
 
 当前版本：**A1_V_Φ7_CN**
