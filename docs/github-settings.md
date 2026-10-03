@@ -12,9 +12,12 @@
 | `main` 分支保护 | **已开启**（GitHub 报告 `protected: true`） |
 | 绕过列表 | 已加入「仓库管理员 → Repository admin」 |
 | 仓库所有者 | `@bmdy1145`（admin）、`@nahida38454`（write） |
-| Actions | 尚未确认是否已启用及是否已有成功运行记录 |
+| Actions | **已启用**，校验工作流已在 PR 上成功运行 |
+| 必需状态检查 → Require status checks to pass | **暂不启用**，理由见下 |
 
 **绕过的实际后果**：`@bmdy1145` 是仓库管理员，可绕过规则直推；`@nahida38454` 只是 write 角色，**绕不过**，它的推送一律受规则约束。这正是把绕过限定为"仓库管理员"而非"所有人"的意义。
+
+**为什么暂不启用「需要通过状态检查」**（2026-10-03 决定）：不启用时，工作流照常运行、红叉照常显示，但拦不住合并——校验从硬门槛退回成提醒。之所以接受这一点，是因为本仓库只有两个账号、每个 PR 本来就必须由仓库主手动批准，加这一项的边际价值只是"防止手滑批准一个明显失败的 PR"；而它的配置风险是实打实的：检查名在规则集里不易搜到，一旦选错会让所有 PR 永久卡死。待校验脚本跑过一段时间、确认无误报后再回来开启。届时工作流名与任务名建议先改为 ASCII，以消除搜索匹配问题。
 
 ---
 
@@ -95,7 +98,7 @@ B-1 至 B-3 改完各自点 **Save（保存）**。
 |---|---|
 | **合并前需要拉取请求 → Require a pull request before merging** | **必需的批准数 → Required approvals** 填 `1`；勾 **推送新提交时忽略过期批准 → Dismiss stale pull request approvals**；勾 **需要代码所有者审阅 → Require review from Code Owners**；不要勾 "Require approval of the most recent reviewable push" |
 | **合并前需要解决对话 → Require conversation resolution before merging** | 无 |
-| **需要通过状态检查 → Require status checks to pass** | 勾选后在下拉里选工作流 job 名 **版本号与结构一致性**；此项留到最后做 |
+| **需要通过状态检查 → Require status checks to pass** | 本项目**暂不启用**（见「当前实际状态」）；若日后启用，勾选后在下拉里选工作流 job 名 **版本号与结构一致性**，且此项必须留到最后做 |
 | **需要线性历史记录 → Require linear history** | 无 |
 | **阻止强制推送 → Block force pushes** | 无 |
 | **限制删除 → Restrict deletions** | 无 |
