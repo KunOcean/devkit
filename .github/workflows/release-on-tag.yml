@@ -4,6 +4,10 @@
 # 推送标签后自动创建 Release 并附上该主干下的全部版本文件，
 # 让"下载某个版本的某一款皮肤"变成一次点击。
 #
+# 发布说明由 .github/scripts/make_release_notes.py 从各版本 HTML 里嵌的
+# VERSION_HISTORY 自动汇总，不再是一句固定文案——Releases 页面能直接看出
+# 这一代改了什么。
+#
 # 注意：仓库 Rules 里的标签保护规则，pattern 应写成 A1_V_* 而不是 v*，
 # 与本工作流的命名约定保持一致。
 
@@ -37,10 +41,13 @@ jobs:
           echo "将发布以下文件："
           ls -1 "$DIR"/*.html
 
+      - name: 从版本历史生成发布说明
+        run: python3 .github/scripts/make_release_notes.py "${GITHUB_REF_NAME}" > release_notes.md
+
       - name: 创建 Release 并附上版本文件
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create "${GITHUB_REF_NAME}" code/"${GITHUB_REF_NAME}"/*.html \
             --title "${GITHUB_REF_NAME}" \
-            --notes "主干 ${GITHUB_REF_NAME} 下的全部版本文件。每个文件都是自包含的单页应用，下载后可直接用浏览器打开。"
+            --notes-file release_notes.md

@@ -115,8 +115,10 @@ B-1 至 B-3 改完各自点 **Save（保存）**。
 |---|---|
 | 规则集名称 | `tag-protection` |
 | 强制执行状态 | 活动 → Active |
-| 目标标签 → Target tags | **按模式包含 → Include by pattern**，填 `v*` |
+| 目标标签 → Target tags | **按模式包含 → Include by pattern**，填 `A1_V_*` |
 | 勾选规则 | **限制删除 → Restrict deletions**、**阻止强制推送 → Block force pushes** |
+
+> pattern 用 `A1_V_*` 而不是常见的 `v*`，因为本项目的发布标签与主干目录同名（`A1_V_Φ8`），`v*` 一个标签都匹配不到。这与 `.github/workflows/release-on-tag.yml` 的命名约定一致。
 
 ---
 
