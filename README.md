@@ -86,7 +86,8 @@ devkit/
 ├── LICENSE                          # GPLv3 许可证全文（必须留在根目录）
 ├── index.html                       # GitHub Pages 落地页（版本选择台）
 ├── docs/
-│   └── .gitkeep                     # 仅占位（git 无法跟踪空目录），暂无用途
+│   ├── .gitkeep                     # 仅占位（git 无法跟踪空目录）
+│   └── branching.md                 # 分支与 PR 约定（由 CLAUDE.md 用 @ 导入）
 ├── code/
 │   ├── index.html                   # /code/ 目录索引，列出各分支
 │   ├── A1_V_Φ8/                     # 当前主干（Φ7 上的增量修改）

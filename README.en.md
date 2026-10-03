@@ -86,7 +86,8 @@ devkit/
 ├── LICENSE                          # Full text of the GPLv3 license (must stay at root)
 ├── index.html                       # GitHub Pages landing page (version picker)
 ├── docs/
-│   └── .gitkeep                     # Placeholder only (git cannot track empty folders); currently unused
+│   ├── .gitkeep                     # Placeholder only (git cannot track empty folders)
+│   └── branching.md                 # Branching & PR policy (imported by CLAUDE.md via @)
 ├── code/
 │   ├── index.html                   # Index for /code/, lists the branches
 │   ├── A1_V_Φ8/                     # Current main line (incremental change over Φ7)
