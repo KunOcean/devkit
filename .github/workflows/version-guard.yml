@@ -1,0 +1,36 @@
+# 版本结构校验
+#
+# 默认只报告、不拦截：校验失败会在 PR 上显示红叉，但不会挡住合并。
+# 若要变成合并硬门槛，需在仓库 Rules 里把「版本号与结构一致性」设为必需状态检查。
+#
+# 校验内容见 .github/scripts/version_guard.py，本地可用同一条命令运行：
+#     python3 .github/scripts/version_guard.py
+
+name: 版本结构校验
+
+on:
+  pull_request:
+    paths:
+      - 'code/**'
+      - '.github/**'
+      - 'docs/**'
+      - 'CLAUDE.md'
+      - 'README.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: version-guard-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  version-guard:
+    name: 版本号与结构一致性
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+      - name: 运行校验
+        run: python3 .github/scripts/version_guard.py
