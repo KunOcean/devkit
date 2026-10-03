@@ -27,7 +27,7 @@ on:
   pull_request_target:
     types: [closed]
   schedule:
-    # 每周一 03:00 UTC，兜底全量扫描
+    # 每周一 03:00 UTC（北京时间 11:00），兜底全量扫描
     - cron: '0 3 * * 1'
   workflow_dispatch:
     inputs:

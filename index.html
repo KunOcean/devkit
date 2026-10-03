@@ -10,7 +10,7 @@
     项目名称：AI 开发快捷工具箱（DevKit）· 站点外壳
     文件性质：GitHub Pages 落地页。不属于 DevKit 应用的版本架构，
               不占用版本号；各版本 HTML 的版本代号见 code/ 下的文件本身。
-    职责：列出可浏览的分支，并给出最新版本的直达入口。
+    职责：列出可浏览的分支，并给出下载入口。
 
     部署要求（重要）：GitHub Pages 的发布目录必须为 “/ (root)”。
     原因：发布目录若设为 “/docs”，GitHub 只会发布 docs/ 目录内的文件，
@@ -20,8 +20,10 @@
     版权：Copyright (C) 2026-至今  北冥的鱼, DeepSeek
     许可证：GPLv3
     ============================================================
-    维护提示：新增分支时，复制一个 <a class="card"> 块并改 href / 文案即可；
-              发布新版本时，同时更新上方「最新版本」直达条的 href 与文案。
+    维护提示：新增分支时，复制一个 <a class="card"> 块并改 href / 文案即可。
+              上方直达条指向的是 Releases 页而非某个具体文件——同一主干下九款
+              皮肤版本号相同，「最新版本」指哪一个都是武断的；指 Releases 则
+              每次自动发布都会自动更新，无需手工维护。
     约定：href 中的 Φ 一律用百分号编码 %CE%A6，避免个别浏览器/服务器对
           非 ASCII 路径处理不一致；页面显示文字仍写 Φ。
     ============================================================
@@ -211,13 +213,20 @@
     </p>
 
     <section aria-labelledby="sec-quick">
-        <h2 id="sec-quick">最新版本</h2>
-        <a class="quick" href="code/A1_V_%CE%A68/deepseek_A1_V_%CE%A68_Clean_Fix_CN.html">
+        <h2 id="sec-quick">下载</h2>
+        <a class="quick" href="https://github.com/bmdy1145/devkit/releases">
             <span class="quick-text">
-                <span class="quick-name">deepseek_A1_V_Φ8_Clean_Fix_CN.html</span>
-                <span class="quick-meta">含响应式与触屏适配 · 新增简约皮肤 · 暗色 / 亮色 / 跟随系统 · 2026-10-03 · 约 255 KB</span>
+                <span class="quick-name">Releases · 按主干打包下载</span>
+                <span class="quick-meta">每次 main 更新自动发布 · 一个主干的全部皮肤打包附上 · 点一下就下载，不必逐层点进目录</span>
             </span>
-            <span class="quick-cta">直接打开 →</span>
+            <span class="quick-cta">前往 Releases →</span>
+        </a>
+        <a class="quick" href="code/A1_V_%CE%A68/">
+            <span class="quick-text">
+                <span class="quick-name">在线阅读 · A1_V_Φ8（当前主干，九款皮肤）</span>
+                <span class="quick-meta">不想下载就直接在浏览器里打开用</span>
+            </span>
+            <span class="quick-cta">进入目录 →</span>
         </a>
     </section>
 

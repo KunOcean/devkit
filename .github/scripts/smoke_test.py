@@ -116,9 +116,15 @@ def run_one(browser: str, path: Path, rel: str) -> None:
         problems.append(f"{rel}：等待 {WAIT_FOR_OUTPUT_SECONDS} 秒后仍未取到页面内容")
         return
 
+    # 版本文件要求 <body> 带上主题类名（说明初始化脚本跑到了设置主题那一步）；
+    # 导航页是静态页，本来就没有类名，只要求 <body> 存在。
+    is_nav = path.name == "index.html"
     body = BODY_RE.search(dom_text)
-    if not body:
-        problems.append(f"{rel}：找不到 <body> 标签")
+    if is_nav:
+        if not re.search(r"<body\b", dom_text):
+            problems.append(f"{rel}：找不到 <body> 标签")
+    elif not body:
+        problems.append(f"{rel}：找不到带类名的 <body> 标签")
     elif not body.group(1).strip():
         problems.append(f"{rel}：<body> 没有类名，初始化脚本可能未执行到设置主题那一步")
 
@@ -136,9 +142,15 @@ def main() -> int:
         print("[问题] 找不到 Chrome / Chromium。用 CHROME_BIN 指定浏览器路径后重试。")
         return 1
 
+    # 除版本文件外，也覆盖三层导航页（落地页、code/ 目录页、各主干目录页）。
+    # 导航页此前不在覆盖范围内，但它们是访客的实际入口，改坏了同样致命。
     files = sorted(CODE_DIR.glob("*/deepseek_*.html"))
+    files += sorted(CODE_DIR.glob("*/index.html"))
+    root_index = ROOT / "index.html"
+    if root_index.exists():
+        files.append(root_index)
     if not files:
-        print("[问题] code/ 下没有找到任何版本文件。")
+        print("[问题] 没有找到任何可测的 HTML 文件。")
         return 1
 
     print(f"使用浏览器：{browser}")
