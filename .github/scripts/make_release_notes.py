@@ -133,9 +133,11 @@ def build_notes(trunk: str, mode: str = "changed") -> str:
 
     lines.append("## 附件")
     lines.append("")
+    # 十进制（÷1000）而非 KiB（÷1024）：导航页手写的大小用的是十进制，
+    # 两处数字必须对得上，否则同一个文件会显示成两个大小。
     for path in files:
-        kb = path.stat().st_size / 1024
-        lines.append(f"- `{path.name}`（{kb:.0f} KB，sha256 `{digest(path)}`）")
+        kb = path.stat().st_size / 1000
+        lines.append(f"- `{path.name}`（约 {kb:.0f} KB，sha256 `{digest(path)}`）")
 
     return "\n".join(lines)
 

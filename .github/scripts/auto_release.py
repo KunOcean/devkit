@@ -124,10 +124,22 @@ def create_tag(repo: str, token: str, tag: str, sha: str) -> bool:
     return status in (201, 200)
 
 
+def asset_name(filename: str) -> str:
+    """把附件名转成 ASCII 安全形式。
+
+    GitHub 会把 Release 附件名里的非 ASCII 字符换成别的字符：实测 Φ 变成了
+    `.`，于是 deepseek_A1_V_Φ8_Fix_CN.html 上传后下载名成了
+    deepseek_A1_V_.8_Fix_CN.html。上传时用 Phi 代替 Φ，另用 label 参数保留
+    原写法供界面显示（label 若同样被净化也无副作用）。
+    """
+    return filename.replace("Φ", "Phi")
+
+
 def upload_asset(repo: str, token: str, release_id: int, path: Path) -> bool:
     url = (
         f"{UPLOAD_API}/repos/{repo}/releases/{release_id}/assets"
-        f"?name={urllib.parse.quote(path.name)}"
+        f"?name={urllib.parse.quote(asset_name(path.name))}"
+        f"&label={urllib.parse.quote(path.name)}"
     )
     body = path.read_bytes()
     req = urllib.request.Request(url, data=body, method="POST")
