@@ -1,0 +1,18 @@
+# 代码所有者
+#
+# 生效前提：在仓库 Rules 里开启 "Require review from Code Owners"。
+# 只放这个文件不产生任何强制力，必须配合规则才生效。
+#
+# 注意：GitHub 禁止批准自己提出的 PR。两位所有者互为备份 —— 谁提的 PR，
+# 就由另一位批准，避免出现无人可批的死锁。
+
+# 默认：所有改动需所有者审阅
+*                       @bmdy1145 @nahida38454
+
+# 版本产物：改动直接改变对外交付内容
+/code/                  @bmdy1145 @nahida38454
+
+# 协作约定与自动化：改动会改变门槛本身，需更谨慎
+/CLAUDE.md              @bmdy1145 @nahida38454
+/docs/branching.md      @bmdy1145 @nahida38454
+/.github/               @bmdy1145 @nahida38454
