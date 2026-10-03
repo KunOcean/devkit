@@ -7,6 +7,7 @@
 #   · 每个 PR 都跑，不论改了哪些文件。若加了 paths 过滤，不在过滤内的 PR 永远
 #     不会回报检查，一旦日后开启「必需状态检查」，那些 PR 会被永久卡死。
 #   · 合并进 main 后再跑一次，接住压缩合并可能产生的意外差异。
+#   · 每周定时跑一次，检查 main 有没有被静默改坏（例如绕过 PR 直推）。
 #   · 支持手动触发。
 #
 # 校验内容见 .github/scripts/version_guard.py，本地可用同一条命令运行：
@@ -19,6 +20,9 @@ on:
     types: [opened, synchronize, reopened]
   push:
     branches: [main]
+  schedule:
+    # 每周一 03:30 UTC
+    - cron: '0 3 * * 1'
   workflow_dispatch:
 
 permissions:
