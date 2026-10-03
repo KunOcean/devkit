@@ -1,10 +1,6 @@
 # 版本相关提示词模板（Prompt Templates）
 
-> 来源：DevKit `A1_V_Φ7_CN` 的 `PROMPT_TEMPLATES` 数组。
-> 原数组共 22 个模板，此处**只保留版本相关**的 4 个；其余 18 个（审计 / 调试 / 测试 / 文档 / 运维 / 数据 / 无障碍 / 架构 / 合规 / 命名 / 结构重构 / 需求分析等）已剔除。
-> 网页端完整原版存档：`.claude/skills-archive/devkit-spec-web-original/references/prompt-templates.md`
 > 使用时把具体需求与代码代入模板，不要改动措辞。
-> 模板中的项目专属标识（文件名前缀、署名等）已改为占位符，可移植到其他项目。
 
 | id | 分类 | 标签 |
 |----|------|------|
