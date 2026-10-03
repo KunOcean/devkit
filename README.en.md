@@ -50,12 +50,12 @@ Eight of the nine skins (all but the baseline) unify on a three-state `themePref
 
 In the version string, `Glass` / `Neon` / `Mono` / `Clean` / `Material` / `Minimal` / `Premium` / `Shadcn` are **variant markers** (they occupy no layer) while `Fix` is the actual 4th-layer English tag — the Fix layer is a cross-skin synchronised defect fix.
 
-The previous generation `A1_V_Φ7` is available **in parallel** with Φ8 under `code/A1_V_Φ7/`, with four skins (baseline / glass / neon / monospace). Two earlier generations, `A1_V_Φ5` (two versions) and `A1_V_Φ4` (one version), are also kept under `code/` for historical reference — neither has skin variants.
+The previous generation `A1_V_Φ7` is available **in parallel** with Φ8 under `projects/devkit/code/A1_V_Φ7/`, with four skins (baseline / glass / neon / monospace). Two earlier generations, `A1_V_Φ5` (two versions) and `A1_V_Φ4` (one version), are also kept under `projects/devkit/code/` for historical reference — neither has skin variants.
 
 ## Usage
 
 1. **Easiest: grab a Release.** Every update to `main` is published automatically, packaged per main line with all of that generation's skins attached — one click, no browsing. See https://github.com/bmdy1145/devkit/releases
-2. Or pick a skin from the site home page, or download `code/A1_V_Φ8/deepseek_A1_V_Φ8_Clean_Fix_CN.html` directly
+2. Or pick a skin from the site home page, or download `projects/devkit/code/A1_V_Φ8/deepseek_A1_V_Φ8_Clean_Fix_CN.html` directly
 3. Double-click to open it in a browser (Chrome / Edge or any modern browser)
 4. Pick a step under "Workflow Steps" → fill in the inspiration and paste your code → click "Copy" → paste into your AI chat tool
 
@@ -81,61 +81,78 @@ The project maintains two language variants in parallel. They share the same mai
 ## Repository Layout
 
 ```
-devkit/
+devkit/                              # Repo root (GitHub Pages publish folder)
 ├── README.md / README.en.md        # Documentation (must stay at root for GitHub to render it)
 ├── SECURITY.md / SECURITY.en.md    # Security policy (must stay at root for the Security tab)
 ├── LICENSE                          # Full text of the GPLv3 license (must stay at root)
-├── index.html                       # GitHub Pages landing page (version picker)
+├── index.html                       # GitHub Pages landing page (project picker)
+├── 404.html                         # Fallback for pre-migration /code/** paths
+├── .nojekyll                        # Disables Jekyll processing (plain static site)
 ├── .github/                         # PR template, CODEOWNERS, workflows, Dependabot
-│   ├── workflows/                   # version guard, repo checks, release on tag, branch cleanup, PR labels
+│   ├── workflows/                   # version guard, repo checks, auto release, branch cleanup, PR labels
 │   └── scripts/                     # check scripts called by the workflows; runnable locally
-├── docs/
+├── docs/                            # Repo-level conventions (shared across projects)
 │   ├── .gitkeep                     # Placeholder only (git cannot track empty folders)
 │   ├── branching.md                 # Branching & PR policy (imported by CLAUDE.md via @)
 │   └── github-settings.md           # GitHub repo settings manual (branch protection, Actions)
-├── code/
-│   ├── index.html                   # Index for /code/, lists the branches
-│   ├── A1_V_Φ8/                     # Current main line (incremental change over Φ7)
-│   │   ├── index.html                              # Version list for this branch
-│   │   ├── deepseek_A1_V_Φ8_Clean_Fix_CN.html      # New: Clean
-│   │   ├── deepseek_A1_V_Φ8_Material_Fix_CN.html   # New: Material Design (MD3)
-│   │   ├── deepseek_A1_V_Φ8_Minimal_Fix_CN.html    # New: Minimal
-│   │   ├── deepseek_A1_V_Φ8_Premium_Fix_CN.html    # New: Premium
-│   │   ├── deepseek_A1_V_Φ8_Shadcn_Fix_CN.html     # New: Shadcn
-│   │   ├── deepseek_A1_V_Φ8_Mono_Fix_CN.html       # Monospace + two-axis themes
-│   │   ├── deepseek_A1_V_Φ8_Neon_Fix_CN.html       # Electric neon
-│   │   ├── deepseek_A1_V_Φ8_Glass_Fix_CN.html      # Glassmorphism
-│   │   └── deepseek_A1_V_Φ8_Fix_CN.html            # Baseline skin
-│   ├── A1_V_Φ7/                     # Previous main line (parallel with Φ8)
-│   │   ├── index.html                            # Version list for this branch
-│   │   ├── deepseek_A1_V_Φ7_Mono_CN.html         # Monospace + two-axis themes
-│   │   ├── deepseek_A1_V_Φ7_Neon_CN.html         # Electric neon
-│   │   ├── deepseek_A1_V_Φ7_Glass_CN.html        # Glassmorphism
-│   │   └── deepseek_A1_V_Φ7_CN.html              # Baseline skin
-│   ├── A1_V_Φ5/                     # Early main line (historical reference)
-│   │   ├── index.html                            # Version list for this branch
-│   │   ├── deepseek_A1_V_Φ5_Fix_CN.html          # Icon font embedded locally + spec red lines
-│   │   └── deepseek_A1_V_Φ5_CN.html              # Fixes 9 inherited defects + 4 review amendments
-│   └── A1_V_Φ4/                     # Early main line (historical reference)
-│       ├── index.html                            # Version list for this branch
-│       └── deepseek_A1_V_Φ4_CN.html              # Fixes 15 defects
+├── projects/                        # One directory per project, each with its own landing page
+│   ├── index.html                   # Index for /projects/
+│   └── devkit/                      # Project: AI 开发快捷工具箱
+│       ├── index.html               # Project landing page (version picker + download shortcut)
+│       └── code/
+│           ├── index.html                   # Index for the branch directory
+│           ├── A1_V_Φ8/                     # Current main line
+│           │   ├── index.html                              # Version list for this branch
+│           │   ├── deepseek_A1_V_Φ8_Clean_Fix_CN.html      # Clean
+│           │   ├── deepseek_A1_V_Φ8_Material_Fix_CN.html   # Material Design (MD3)
+│           │   ├── deepseek_A1_V_Φ8_Minimal_Fix_CN.html    # Minimal
+│           │   ├── deepseek_A1_V_Φ8_Premium_Fix_CN.html    # Premium
+│           │   ├── deepseek_A1_V_Φ8_Shadcn_Fix_CN.html     # Shadcn
+│           │   ├── deepseek_A1_V_Φ8_Mono_Fix_CN.html       # Monospace + two-axis themes
+│           │   ├── deepseek_A1_V_Φ8_Neon_Fix_CN.html       # Electric neon
+│           │   ├── deepseek_A1_V_Φ8_Glass_Fix_CN.html      # Glassmorphism
+│           │   └── deepseek_A1_V_Φ8_Fix_CN.html            # Baseline skin
+│           ├── A1_V_Φ7/                     # Previous main line (parallel with Φ8)
+│           │   ├── index.html
+│           │   ├── deepseek_A1_V_Φ7_Mono_CN.html
+│           │   ├── deepseek_A1_V_Φ7_Neon_CN.html
+│           │   ├── deepseek_A1_V_Φ7_Glass_CN.html
+│           │   └── deepseek_A1_V_Φ7_CN.html
+│           ├── A1_V_Φ5/                     # Early main line (historical reference)
+│           │   ├── index.html
+│           │   ├── deepseek_A1_V_Φ5_Fix_CN.html          # Icon font embedded locally + spec red lines
+│           │   └── deepseek_A1_V_Φ5_CN.html              # Fixes 9 inherited defects + 4 review amendments
+│           └── A1_V_Φ4/                     # Early main line (historical reference)
+│               ├── index.html
+│               └── deepseek_A1_V_Φ4_CN.html              # Fixes 15 defects
 └── .claude/skills/devkit-spec/      # Claude Code skill (version & collaboration spec + version templates)
 ```
 
-> Only the versioned HTML files under `code/` are project artifacts; the three root documents, the three navigation `index.html` files, `docs/` and `.claude/` are all outside the version-numbering scheme.
+> Only the contents of `projects/<name>/` are project artifacts. The three root documents, `index.html`, `404.html`, `docs/`, `.claude/` and `.github/` are all **repo-level** — they belong to no project's version scheme and carry no project version number.
+
+### Multi-project layout
+
+This repository is organised as `projects/<name>/`, one directory per project:
+
+- Each project ships its own `index.html` as its landing page. The internal directory structure and version-numbering rules are **up to each project** — the repo imposes no shared convention on them.
+- The root `index.html` is a **project picker**; it only lists entries to the projects.
+- `docs/` (conventions) and `.github/` (automation) are **shared across projects**. Note that `version_guard.py`, `size_guard.py`, `smoke_test.py` and `auto_release.py` currently **apply to DevKit only** — their path constants are hard-wired to `projects/devkit/code/`. A new project that wants the same checks needs those scripts adapted.
+- Only one project (`devkit`) exists today; future projects just go under `projects/<name>/` with no change to DevKit's structure.
 
 ### Pages deployment note
 
-The site entry is the **root-level** `index.html`. It is a **version picker** (landing page) listing the branches and a direct link to the latest version; the site is browsable level by level:
+The site entry is the **root-level** `index.html`, a **project picker**; each project then has its own version picker. The site is browsable level by level:
 
 | Path | Content |
 |------|---------|
-| `/` | Landing page: latest-version shortcut + branch cards |
-| `/code/` | Branch index (Φ8 / Φ7) |
-| `/code/A1_V_Φ8/` | Version list for the current main line (nine skins) |
-| `/code/A1_V_Φ7/` | Version list for the previous main line (four skins, parallel with Φ8) |
-| `/code/A1_V_Φ5/` | Early main line (two versions, historical reference) |
-| `/code/A1_V_Φ4/` | Early main line (one version, historical reference) |
+| `/` | Project picker: every project hosted in this repository |
+| `/projects/` | Index for the projects directory |
+| `/projects/devkit/` | DevKit landing page: download shortcut + branch cards |
+| `/projects/devkit/code/` | DevKit branch index (Φ8 / Φ7 / Φ5 / Φ4) |
+| `/projects/devkit/code/A1_V_Φ8/` | Version list for the current main line (nine skins) |
+| `/projects/devkit/code/A1_V_Φ7/` | Version list for the previous main line (four skins, parallel with Φ8) |
+| `/projects/devkit/code/A1_V_Φ5/` | Early main line (two versions, historical reference) |
+| `/projects/devkit/code/A1_V_Φ4/` | Early main line (one version, historical reference) |
 
 Beyond Pages there is a **download entry point**: the repository's Releases page (`/releases`), maintained automatically by `.github/workflows/release-on-main.yml` — every update to `main` packages that main line's artifacts and attaches them. Downloading is easiest there; reading online is what Pages is for.
 
@@ -143,9 +160,11 @@ GitHub Pages must therefore publish from **`/ (root)`**:
 
 > Settings → Pages → Deploy from a branch → Branch: `main` → folder **`/ (root)`** → Save
 
-Do **not** set the publish folder to `/docs`: with `/docs`, GitHub Pages only publishes files inside the `docs/` directory, so neither the root `index.html` nor `code/` would go live, and the site would return 404.
+Do **not** set the publish folder to `/docs`: with `/docs`, GitHub Pages only publishes files inside the `docs/` directory, so neither the root `index.html` nor `projects/` would go live, and the site would return 404.
 
-> Also note: GitHub Pages does **not** generate directory listings. A directory without an `index.html` returns 404, which is why `code/`, `code/A1_V_Φ8/` and `code/A1_V_Φ7/` each contain an explicit `index.html`.
+> Note 1: GitHub Pages does **not** generate directory listings. A directory without an `index.html` returns 404, which is why `/projects/`, `/projects/devkit/`, `/projects/devkit/code/` and each main-line directory contain an explicit `index.html`.
+
+> Note 2: **Fallback for old links.** Before the project layer was introduced on 2026-10-03, DevKit lived directly under the repo-level `code/`; those addresses stopped working after the move. The root `404.html` redirects `/devkit/code/**` to `/devkit/projects/devkit/code/**`, covering any depth (including deep links to individual files) in one go. If the repository is ever renamed, update the `BASE` constant in that file.
 
 ## License
 

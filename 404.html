@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>页面已迁移 · DevKit 仓库</title>
+<!--
+    ============================================================
+    项目名称：站点外壳 · 404 兜底
+    文件性质：GitHub Pages 的 404 页面。不属于任何一个应用项目的版本架构，
+              不占用版本号。
+    职责：把迁移前的旧路径重定向到新路径。
+
+    背景：DevKit 原先直接放在仓库根的 code/ 下，2026-10-03 引入项目层后
+          迁到 projects/devkit/code/。已发出去的 Pages 链接、书签与搜索引擎
+          收录都还指向旧地址，本页负责把它们接住。
+
+    为什么用 404 而不是在每个旧目录放跳转页：GitHub Pages 对未命中路径会返回
+          本页，因此**任意深度**的旧链接（含单个文件的深链）一次覆盖，且将来
+          新增的版本文件自动生效，无需为每个文件再补一个跳转页。
+
+    注意：仓库名（= 站点路径前缀）写死在 BASE 常量里。若仓库改名，需同步修改。
+    ============================================================
+    日期：2026-10-03
+    版权：Copyright (C) 2026-至今  北冥的鱼, DeepSeek
+    许可证：GPLv3
+    ============================================================
+-->
+<style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+        --tone: 187, 243, 81;
+        --text: #e9f2ec;
+        --text2: #8b9aa6;
+        --primary: #bbf351;
+        --mono: ui-monospace, 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
+    }
+
+    body {
+        min-height: 100vh;
+        font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, -apple-system, 'Microsoft YaHei', sans-serif;
+        color: var(--text);
+        background:
+            radial-gradient(1100px 700px at 10% -14%, rgba(187,243,81,0.10), transparent 58%),
+            #08090d;
+        background-attachment: fixed;
+        line-height: 1.6;
+        padding: 56px 24px 72px;
+        display: flex; justify-content: center;
+    }
+
+    .wrap { width: 100%; max-width: 720px; }
+
+    h1 {
+        font-family: var(--mono);
+        font-size: 1.25rem; font-weight: 600;
+        color: var(--primary);
+        text-shadow: 0 0 18px rgba(var(--tone), 0.55);
+        margin-bottom: 14px;
+    }
+
+    p { color: var(--text2); font-size: 0.9rem; margin-bottom: 14px; }
+
+    a { color: var(--primary); text-decoration: none; border-bottom: 1px solid rgba(var(--tone), 0.4); }
+    a:hover { border-bottom-color: var(--primary); }
+    a:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+    code {
+        font-family: var(--mono); font-size: 0.82rem;
+        color: var(--text);
+        background: rgba(var(--tone), 0.10);
+        border: 1px solid rgba(var(--tone), 0.18);
+        border-radius: 5px; padding: 1px 6px;
+        word-break: break-all;
+    }
+</style>
+<script>
+    // 旧路径 → 新路径。只映射 DevKit 迁入项目层后变化的那一段，
+    // 其余路径原样保留（含主干名与文件名，其中的 Φ 是百分号编码的）。
+    (function () {
+        var BASE = '/devkit';
+        var OLD = BASE + '/code';
+        var NEW = BASE + '/projects/devkit/code';
+        var path = location.pathname;
+
+        if (path === OLD || path === OLD + '/') {
+            location.replace(NEW + '/');
+        } else if (path.indexOf(OLD + '/') === 0) {
+            location.replace(NEW + path.slice(OLD.length));
+        }
+    })();
+</script>
+</head>
+<body>
+<div class="wrap">
+    <h1>页面已迁移</h1>
+    <p>这个地址对应的内容已经搬到项目目录下。若浏览器没有自动跳转，请手动前往：</p>
+    <p><a href="/devkit/projects/">→ 全部项目</a></p>
+    <p><a href="/devkit/projects/devkit/">→ DevKit 项目首页</a></p>
+    <p>旧地址形如 <code>/devkit/code/A1_V_Φ8/…</code>，新地址是 <code>/devkit/projects/devkit/code/A1_V_Φ8/…</code>。</p>
+</div>
+</body>
+</html>

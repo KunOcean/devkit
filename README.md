@@ -50,12 +50,12 @@ DevKit 是一个**纯 HTML 单文件**的本地开发辅助工具，直接用浏
 
 版本号中 `Glass` / `Neon` / `Mono` / `Clean` / `Material` / `Minimal` / `Premium` / `Shadcn` 是**变体标识**（不占层级），`Fix` 才是第四层英文标识——Fix 层为跨风格同步缺陷修补。
 
-上一代 `A1_V_Φ7` 与 Φ8 **并行可选**，保留在 `code/A1_V_Φ7/`，含四套皮肤（基准 / 毛玻璃 / 霓虹 / 等宽）。更早的两代 `A1_V_Φ5`（两个版本）与 `A1_V_Φ4`（一个版本）也一并保留在 `code/` 下供历史参照——它们尚无皮肤变体。
+上一代 `A1_V_Φ7` 与 Φ8 **并行可选**，保留在 `projects/devkit/code/A1_V_Φ7/`，含四套皮肤（基准 / 毛玻璃 / 霓虹 / 等宽）。更早的两代 `A1_V_Φ5`（两个版本）与 `A1_V_Φ4`（一个版本）也一并保留在 `projects/devkit/code/` 下供历史参照——它们尚无皮肤变体。
 
 ## 使用方式
 
 1. **最省事：直接下 Release。** 每次 `main` 更新都会自动发布一版，按主干打包附上该代全部皮肤，点一下就下载，不必逐层点进目录。入口见 https://github.com/bmdy1145/devkit/releases
-2. 也可以从站点首页逐层挑选皮肤，或直接下载 `code/A1_V_Φ8/deepseek_A1_V_Φ8_Clean_Fix_CN.html`
+2. 也可以从站点首页逐层挑选皮肤，或直接下载 `projects/devkit/code/A1_V_Φ8/deepseek_A1_V_Φ8_Clean_Fix_CN.html`
 3. 双击用浏览器打开（Chrome / Edge 等现代浏览器）
 4. 在「工作流步骤」中选择步骤 → 填写灵感、粘贴代码 → 点击「复制」→ 粘贴到 AI 对话工具
 
@@ -81,61 +81,78 @@ DevKit 是一个**纯 HTML 单文件**的本地开发辅助工具，直接用浏
 ## 目录结构
 
 ```
-devkit/
+devkit/                              # 仓库根（GitHub Pages 发布目录）
 ├── README.md / README.en.md        # 项目说明（必须留在根目录，GitHub 首页据此渲染）
 ├── SECURITY.md / SECURITY.en.md    # 安全策略（必须留在根目录，Security 选项卡据此显示）
 ├── LICENSE                          # GPLv3 许可证全文（必须留在根目录）
-├── index.html                       # GitHub Pages 落地页（版本选择台）
+├── index.html                       # GitHub Pages 落地页（项目选择台）
+├── 404.html                         # 旧路径兜底：把迁移前的 /code/** 跳到新位置
+├── .nojekyll                        # 关掉 Jekyll 处理（纯静态站点，避免下划线目录被忽略）
 ├── .github/                         # PR 模板、CODEOWNERS、工作流、Dependabot
-│   ├── workflows/                   # 版本结构校验、仓库体检、标签发布、分支清理、PR 标签
+│   ├── workflows/                   # 版本结构校验、仓库体检、自动发布、分支清理、PR 标签
 │   └── scripts/                     # 各工作流调用的检查脚本，本地可同命令运行
-├── docs/
+├── docs/                            # 仓库级协作约定（跨项目通用）
 │   ├── .gitkeep                     # 仅占位（git 无法跟踪空目录）
 │   ├── branching.md                 # 分支与 PR 约定（由 CLAUDE.md 用 @ 导入）
 │   └── github-settings.md           # GitHub 仓库设置手册（分支保护、Actions 等网页端配置）
-├── code/
-│   ├── index.html                   # /code/ 目录索引，列出各分支
-│   ├── A1_V_Φ8/                     # 当前主干（Φ7 上的增量修改）
-│   │   ├── index.html                              # 本分支版本列表
-│   │   ├── deepseek_A1_V_Φ8_Clean_Fix_CN.html      # 新增：简约
-│   │   ├── deepseek_A1_V_Φ8_Material_Fix_CN.html   # 新增：材料设计（MD3）
-│   │   ├── deepseek_A1_V_Φ8_Minimal_Fix_CN.html    # 新增：极简
-│   │   ├── deepseek_A1_V_Φ8_Premium_Fix_CN.html    # 新增：高级质感
-│   │   ├── deepseek_A1_V_Φ8_Shadcn_Fix_CN.html     # 新增：Shadcn
-│   │   ├── deepseek_A1_V_Φ8_Mono_Fix_CN.html       # 全等宽 + 双轴主题
-│   │   ├── deepseek_A1_V_Φ8_Neon_Fix_CN.html       # 电光霓虹
-│   │   ├── deepseek_A1_V_Φ8_Glass_Fix_CN.html      # 毛玻璃
-│   │   └── deepseek_A1_V_Φ8_Fix_CN.html            # 基准皮肤
-│   ├── A1_V_Φ7/                     # 上一代主干（与 Φ8 并行可选）
-│   │   ├── index.html                            # 本分支版本列表
-│   │   ├── deepseek_A1_V_Φ7_Mono_CN.html         # 全站等宽 + 双轴主题
-│   │   ├── deepseek_A1_V_Φ7_Neon_CN.html         # 电光霓虹
-│   │   ├── deepseek_A1_V_Φ7_Glass_CN.html        # 毛玻璃
-│   │   └── deepseek_A1_V_Φ7_CN.html              # 基准皮肤
-│   ├── A1_V_Φ5/                     # 早期主干（历史参照）
-│   │   ├── index.html                            # 本分支版本列表
-│   │   ├── deepseek_A1_V_Φ5_Fix_CN.html          # 图标字体本地内嵌 + 规范新增版本红线
-│   │   └── deepseek_A1_V_Φ5_CN.html              # 修复 Φ4 遗留 9 项 + 追加 4 项复核修正
-│   └── A1_V_Φ4/                     # 早期主干（历史参照）
-│       ├── index.html                            # 本分支版本列表
-│       └── deepseek_A1_V_Φ4_CN.html              # 全面修复 15 项缺陷
+├── projects/                        # 各项目各占一个目录，目录内自带落地页
+│   ├── index.html                   # /projects/ 目录索引
+│   └── devkit/                      # 项目：AI 开发快捷工具箱
+│       ├── index.html               # 项目落地页（版本选择台 + 下载直达）
+│       └── code/
+│           ├── index.html                   # 分支目录索引
+│           ├── A1_V_Φ8/                     # 当前主干
+│           │   ├── index.html                              # 本分支版本列表
+│           │   ├── deepseek_A1_V_Φ8_Clean_Fix_CN.html      # 简约
+│           │   ├── deepseek_A1_V_Φ8_Material_Fix_CN.html   # 材料设计（MD3）
+│           │   ├── deepseek_A1_V_Φ8_Minimal_Fix_CN.html    # 极简
+│           │   ├── deepseek_A1_V_Φ8_Premium_Fix_CN.html    # 高级质感
+│           │   ├── deepseek_A1_V_Φ8_Shadcn_Fix_CN.html     # Shadcn
+│           │   ├── deepseek_A1_V_Φ8_Mono_Fix_CN.html       # 全等宽 + 双轴主题
+│           │   ├── deepseek_A1_V_Φ8_Neon_Fix_CN.html       # 电光霓虹
+│           │   ├── deepseek_A1_V_Φ8_Glass_Fix_CN.html      # 毛玻璃
+│           │   └── deepseek_A1_V_Φ8_Fix_CN.html            # 基准皮肤
+│           ├── A1_V_Φ7/                     # 上一代主干（与 Φ8 并行可选）
+│           │   ├── index.html
+│           │   ├── deepseek_A1_V_Φ7_Mono_CN.html
+│           │   ├── deepseek_A1_V_Φ7_Neon_CN.html
+│           │   ├── deepseek_A1_V_Φ7_Glass_CN.html
+│           │   └── deepseek_A1_V_Φ7_CN.html
+│           ├── A1_V_Φ5/                     # 早期主干（历史参照）
+│           │   ├── index.html
+│           │   ├── deepseek_A1_V_Φ5_Fix_CN.html          # 图标字体本地内嵌 + 规范新增版本红线
+│           │   └── deepseek_A1_V_Φ5_CN.html              # 修复 Φ4 遗留 9 项 + 追加 4 项复核修正
+│           └── A1_V_Φ4/                     # 早期主干（历史参照）
+│               ├── index.html
+│               └── deepseek_A1_V_Φ4_CN.html              # 全面修复 15 项缺陷
 └── .claude/skills/devkit-spec/      # Claude Code 技能（版本与协作规范 + 版本相关模板）
 ```
 
-> 只有 `code/` 下的版本 HTML 是项目版本产物；根目录三份文档、三层导航用的 `index.html`、`docs/`、`.claude/` 均不参与版本号体系。
+> 只有 `projects/<项目>/` 下的内容是项目产物。仓库根的三份文档、`index.html`、`404.html`、`docs/`、`.claude/` 以及 `.github/` 都是**仓库级**的，不属于任何一个项目的版本架构、不参与任何项目的版本号体系。
+
+### 多项目结构
+
+本仓库按 `projects/<项目名>/` 组织，每个项目独占一个目录：
+
+- 每个项目自带一个 `index.html` 作为该项目落地页；项目内部的目录结构与版本号规则**由该项目自定**，仓库不为它们设统一规范。
+- 仓库根 `index.html` 是**项目选择台**，只负责列出全部项目入口。
+- `docs/`（协作约定）与 `.github/`（自动化）是**跨项目通用**的；其中 `version_guard.py`、`size_guard.py`、`smoke_test.py`、`auto_release.py` 等脚本目前**只作用于 DevKit**，路径常量写死指向 `projects/devkit/code/`。新增项目若要复用这些检查，需相应改造。
+- 当前只有一个项目 `devkit`；未来的项目放 `projects/<名称>/` 即可，无需改动 DevKit 的结构。
 
 ### Pages 部署说明
 
-站点入口在仓库**根目录**的 `index.html`。它是一个**版本选择台**（落地页），列出各分支与最新版本的直达入口，站点可逐层浏览：
+站点入口在仓库**根目录**的 `index.html`，它是一个**项目选择台**；进入某个项目后才是该项目自己的版本选择台。站点可逐层浏览：
 
 | 路径 | 内容 |
 |------|------|
-| `/` | 落地页：最新发布直达 + 分支卡片 |
-| `/code/` | 分支目录（Φ8 / Φ7 / Φ5 / Φ4） |
-| `/code/A1_V_Φ8/` | 当前主干的版本列表（九套皮肤） |
-| `/code/A1_V_Φ7/` | 上一代主干的版本列表（四套皮肤，与 Φ8 并行可选） |
-| `/code/A1_V_Φ5/` | 早期主干（两个版本，历史参照） |
-| `/code/A1_V_Φ4/` | 早期主干（一个版本，历史参照） |
+| `/` | 项目选择台：列出本仓库托管的全部项目 |
+| `/projects/` | 项目目录索引 |
+| `/projects/devkit/` | DevKit 项目落地页：下载直达 + 分支卡片 |
+| `/projects/devkit/code/` | DevKit 分支目录（Φ8 / Φ7 / Φ5 / Φ4） |
+| `/projects/devkit/code/A1_V_Φ8/` | 当前主干的版本列表（九套皮肤） |
+| `/projects/devkit/code/A1_V_Φ7/` | 上一代主干的版本列表（四套皮肤，与 Φ8 并行可选） |
+| `/projects/devkit/code/A1_V_Φ5/` | 早期主干（两个版本，历史参照） |
+| `/projects/devkit/code/A1_V_Φ4/` | 早期主干（一个版本，历史参照） |
 
 Pages 之外还有一个**下载入口**：仓库的 Releases 页（`/releases`）由 `.github/workflows/release-on-main.yml` 自动维护——每次 `main` 更新就按主干打一个包，附上该代全部交付物。想拿文件下载走这里最省事，想在线阅读走 Pages。
 
@@ -143,9 +160,11 @@ Pages 之外还有一个**下载入口**：仓库的 Releases 页（`/releases`�
 
 > Settings → Pages → Deploy from a branch → Branch: `main` → 目录选 **`/ (root)`** → Save
 
-**不要**把发布目录设为 `/docs`。GitHub Pages 在发布目录为 `/docs` 时，**只会发布 `docs/` 目录内的文件**：根目录的 `index.html` 与整个 `code/` 都不会上线，站点直接 404。
+**不要**把发布目录设为 `/docs`。GitHub Pages 在发布目录为 `/docs` 时，**只会发布 `docs/` 目录内的文件**：根目录的 `index.html` 与整个 `projects/` 都不会上线，站点直接 404。
 
-> 补充：GitHub Pages **不会自动生成目录列表**。访问一个没有 `index.html` 的目录一律 404，所以 `code/`、`code/A1_V_Φ8/`、`code/A1_V_Φ7/` 下各放了一个显式的 `index.html` 作为索引。
+> 补充一：GitHub Pages **不会自动生成目录列表**。访问一个没有 `index.html` 的目录一律 404，所以 `/projects/`、`/projects/devkit/`、`/projects/devkit/code/` 与各主干目录下都放了显式的 `index.html` 作为索引。
+
+> 补充二：**旧链接的兜底**。2026-10-03 引入项目层之前，DevKit 直接放在仓库根的 `code/` 下；迁移后这些地址失效。根目录的 `404.html` 会把 `/devkit/code/**` 重定向到 `/devkit/projects/devkit/code/**`，任意深度（含单个文件的深链）一次覆盖。若日后仓库改名，需同步修改该文件里的 `BASE` 常量。
 
 ## 许可证
 

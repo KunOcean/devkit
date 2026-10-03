@@ -32,7 +32,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-CODE_DIR = ROOT / "code"
+# DevKit 已迁入项目层；与 auto_release.py 的常量保持一致
+CODE_DIR = ROOT / "projects" / "devkit" / "code"
 
 MAX_NOTE_CHARS = 240
 BOILERPLATE = "中文版：同步应用主干版本号"
@@ -162,7 +163,7 @@ def main() -> int:
 
     trunk = args[0]
     if not (CODE_DIR / trunk).is_dir():
-        print(f"找不到目录 code/{trunk}", file=sys.stderr)
+        print(f"找不到目录 projects/devkit/code/{trunk}", file=sys.stderr)
         return 1
 
     print(build_notes(trunk, mode))

@@ -22,7 +22,8 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-CODE_DIR = ROOT / "code"
+# DevKit 交付物已迁入项目层
+CODE_DIR = ROOT / "projects" / "devkit" / "code"
 
 BRANCH_RE = re.compile(r"^A\d+$")
 ROMAN_RE = re.compile(r"^[IVX]+$")

@@ -22,7 +22,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-CODE_DIR = ROOT / "code"
+# DevKit 交付物已迁入项目层；glob 仍只覆盖 DevKit 的主干目录，不做投机性泛化
+CODE_DIR = ROOT / "projects" / "devkit" / "code"
 
 # 刻意留足余量：当前最大约 290 KB。产品若合理增长，应先调这两个数，
 # 而不是让它们长期处在被触发的边缘——长期告警等于没有告警。
