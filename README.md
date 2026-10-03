@@ -60,7 +60,7 @@ devkit/
 ├── LICENSE                          # GPLv3 许可证全文（必须留在根目录）
 ├── index.html                       # GitHub Pages 站点入口，跳转到最新版本文件
 ├── docs/
-│   └── index.html                   # 备用入口（仅当发布目录仍为 /docs 时有意义）
+│   └── .gitkeep                     # 仅占位（git 无法跟踪空目录），暂无用途
 ├── code/
 │   └── A1_V_Φ7/                     # 同一主干版本一个文件夹
 │       └── deepseek_A1_V_Φ7_Glass_CN.html   # 当前最新（全站毛玻璃）
@@ -75,7 +75,7 @@ devkit/
 
 > Settings → Pages → Deploy from a branch → Branch: `main` → 目录选 **`/ (root)`** → Save
 
-**不要**把发布目录设为 `/docs`。GitHub Pages 在发布目录为 `/docs` 时，**只会发布 `docs/` 目录内的文件**：根目录的 `index.html` 与 `code/` 都不会上线，站点根路径会被 `docs/index.html` 接管，而它要跳转的目标在发布目录之外，结果依然是 404。
+**不要**把发布目录设为 `/docs`。GitHub Pages 在发布目录为 `/docs` 时，**只会发布 `docs/` 目录内的文件**：根目录的 `index.html` 与 `code/` 都不会上线，站点直接 404。
 
 ## 许可证
 
