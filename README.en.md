@@ -58,9 +58,9 @@ devkit/
 ├── README.md / README.en.md        # Documentation (must stay at root for GitHub to render it)
 ├── SECURITY.md / SECURITY.en.md    # Security policy (must stay at root for the Security tab)
 ├── LICENSE                          # Full text of the GPLv3 license (must stay at root)
-├── index.html                       # Legacy root-level site entry, kept for compatibility; the canonical one is under docs/
+├── index.html                       # GitHub Pages entry page, redirects to the latest version file
 ├── docs/
-│   └── index.html                   # GitHub Pages entry page, redirects to the latest version file
+│   └── index.html                   # Secondary entry (only meaningful if the publish dir is still /docs)
 ├── code/
 │   └── A1_V_Φ7/                     # One folder per main-line version
 │       └── deepseek_A1_V_Φ7_Glass_CN.html   # Current latest (full-site glassmorphism)
@@ -71,7 +71,11 @@ devkit/
 
 ### Pages deployment note
 
-The site entry lives at `docs/index.html`, so GitHub Pages must publish from **`/docs`** (Settings → Pages → Deploy from a branch → main / `/docs`). If it still points at `/ (root)`, the root URL returns 404.
+The site entry is the **root-level** `index.html`, which redirects to `code/A1_V_Φ7/deepseek_A1_V_Φ7_Glass_CN.html`. GitHub Pages must therefore publish from **`/ (root)`**:
+
+> Settings → Pages → Deploy from a branch → Branch: `main` → folder **`/ (root)`** → Save
+
+Do **not** set the publish folder to `/docs`. With `/docs`, GitHub only publishes files inside the `docs/` directory: the root `index.html` and `code/` never go live, the site root is taken over by `docs/index.html`, and since its redirect target lies outside the publish root, the result is still a 404.
 
 ## License
 
