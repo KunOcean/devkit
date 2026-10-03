@@ -39,9 +39,11 @@ The same functional code ships with four skins. Each is an independent single-fi
 | `A1_V_Φ8_Glass_Fix_CN` | Glassmorphism: translucent layers, background blur, luminous borders | Dark glass / Light glass / Follow system |
 | `A1_V_Φ8_Fix_CN` | Baseline skin (no skin; numeric theme system) | Original `theme` system |
 
-All four belong to main line `A1_V_Φ8`, an incremental change on top of Φ7. In the version string, `Glass` / `Neon` / `Mono` are **variant markers** (they occupy no layer) while `Fix` is the actual 4th-layer English tag — this release is a cross-skin synchronised defect fix.
+All four belong to main line `A1_V_Φ8`. The incremental change in Φ8 is **full-site responsive, multi-ratio and touch adaptation**: `viewport-fit=cover`, `100dvh` height with `env(safe-area-inset-*)` safe areas, width breakpoints at ≥1800 / ≤1024 / ≤820 / ≤560 plus a ≤520 height breakpoint, vertical stacking and horizontally scrolling step lists on narrow screens, enlarged touch targets on coarse pointers, and drag handles switched from mouse to pointer events. All four skins share the same adaptation layer.
 
-The previous generation `A1_V_Φ7` remains under `code/A1_V_Φ7/` with three skins (glass / neon / monospace).
+In the version string, `Glass` / `Neon` / `Mono` are **variant markers** (they occupy no layer) while `Fix` is the actual 4th-layer English tag — the Fix layer is a cross-skin synchronised defect fix.
+
+The previous generation `A1_V_Φ7` is available **in parallel** with Φ8 under `code/A1_V_Φ7/`, with four skins (baseline / glass / neon / monospace).
 
 ## Usage
 
@@ -60,7 +62,7 @@ The project uses a "four base layers + cyclic extension" version scheme:
 | 1st | Branch code (A1, A2) | Specified by the user |
 | 2nd | Roman numerals (I, II, III…) | Incremented on a rewrite or major upgrade; lower layers reset |
 | 3rd | Φ + number (Φ1, Φ2…) | Incremental changes on the same Roman-numeral version |
-| 4th | English tag (Fix, Perf, Glass…) | Minor tweaks; appended when the change is below incremental scale, without bumping Φ |
+| 4th | English tag (Fix, Perf, Doc…) | Minor tweaks; appended when the change is below incremental scale, without bumping Φ. **Skin names do not belong to this layer** — see the variant-marker note below |
 
 Beyond the 4th layer the scheme cycles as `B1 → I → Ψ1 → English tag → C1 …`, e.g. `A1_I_Φ1_Fix_B1_I_Ψ1_Fix_C1`.
 
@@ -86,11 +88,12 @@ devkit/
 │   │   ├── deepseek_A1_V_Φ8_Neon_Fix_CN.html     # Electric neon
 │   │   ├── deepseek_A1_V_Φ8_Glass_Fix_CN.html    # Glassmorphism
 │   │   └── deepseek_A1_V_Φ8_Fix_CN.html          # Baseline skin
-│   └── A1_V_Φ7/                     # Previous main line
+│   └── A1_V_Φ7/                     # Previous main line (parallel with Φ8)
 │       ├── index.html                            # Version list for this branch
 │       ├── deepseek_A1_V_Φ7_Mono_CN.html         # Monospace + two-axis themes
 │       ├── deepseek_A1_V_Φ7_Neon_CN.html         # Electric neon
-│       └── deepseek_A1_V_Φ7_Glass_CN.html        # Glassmorphism
+│       ├── deepseek_A1_V_Φ7_Glass_CN.html        # Glassmorphism
+│       └── deepseek_A1_V_Φ7_CN.html              # Baseline skin
 └── .claude/skills/devkit-spec/      # Claude Code skill (version & collaboration spec + version templates)
 ```
 
@@ -105,7 +108,7 @@ The site entry is the **root-level** `index.html`. It is a **version picker** (l
 | `/` | Landing page: latest-version shortcut + branch cards |
 | `/code/` | Branch index (Φ8 / Φ7) |
 | `/code/A1_V_Φ8/` | Version list for the current main line (four skins) |
-| `/code/A1_V_Φ7/` | Version list for the previous main line (three skins) |
+| `/code/A1_V_Φ7/` | Version list for the previous main line (four skins, parallel with Φ8) |
 
 GitHub Pages must therefore publish from **`/ (root)`**:
 
