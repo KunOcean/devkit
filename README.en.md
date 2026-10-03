@@ -60,7 +60,7 @@ devkit/
 ├── LICENSE                          # Full text of the GPLv3 license (must stay at root)
 ├── index.html                       # GitHub Pages entry page, redirects to the latest version file
 ├── docs/
-│   └── index.html                   # Secondary entry (only meaningful if the publish dir is still /docs)
+│   └── .gitkeep                     # Placeholder only (git cannot track empty folders); currently unused
 ├── code/
 │   └── A1_V_Φ7/                     # One folder per main-line version
 │       └── deepseek_A1_V_Φ7_Glass_CN.html   # Current latest (full-site glassmorphism)
@@ -75,7 +75,7 @@ The site entry is the **root-level** `index.html`, which redirects to `code/A1_V
 
 > Settings → Pages → Deploy from a branch → Branch: `main` → folder **`/ (root)`** → Save
 
-Do **not** set the publish folder to `/docs`. With `/docs`, GitHub only publishes files inside the `docs/` directory: the root `index.html` and `code/` never go live, the site root is taken over by `docs/index.html`, and since its redirect target lies outside the publish root, the result is still a 404.
+Do **not** set the publish folder to `/docs`: with `/docs`, GitHub Pages only publishes files inside the `docs/` directory, so neither the root `index.html` nor `code/` would go live, and the site would return 404.
 
 ## License
 
