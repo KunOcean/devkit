@@ -215,7 +215,7 @@
 -->
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>AI 开发快捷工具箱</title>
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'none';">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0" crossorigin="anonymous">
@@ -229,6 +229,11 @@
             --shape-corner-small: 2px;      /* mono：近直角，仅留极轻微柔化 */
             --shape-corner-medium: 4px;     /* 浮层/弹窗用 */
             --transition: 0.15s;            /* mono：过渡更干脆，不做缓浮 */
+            /* 三条横向 chrome 的高度：抽成令牌后，矮窗口断点只需改变量，
+               即可让依赖它们定位的 drag-hint / loading-overlay 同步跟随 */
+            --title-bar-h: 36px;
+            --project-bar-h: 32px;
+            --panel-header-h: 28px;
         }
 
         /* ========== 等宽基础令牌（全站终端观感的统一来源） ==========
@@ -401,7 +406,7 @@
             padding: 4px 16px;
             background: rgba(var(--mono-tint, 30, 30, 30), var(--mono-alpha));
             border-bottom: 1px solid rgba(var(--mono-tone), var(--mono-edge-alpha, 0.12));
-            height: 36px; flex-shrink: 0; font-size: 0.85rem;
+            height: var(--title-bar-h); flex-shrink: 0; font-size: 0.85rem;
             z-index: 20;
         }
         .brand-group { display: flex; align-items: center; gap: 10px; }
@@ -454,7 +459,7 @@
             display: flex; align-items: center;
             background: rgba(var(--mono-tint, 30, 30, 30), 0.70);
             border-bottom: 1px solid rgba(var(--mono-tone), var(--mono-edge-alpha, 0.12));
-            height: 32px; flex-shrink: 0; padding: 0 8px; gap: 4px; overflow-x: auto; scrollbar-width: none;
+            height: var(--project-bar-h); flex-shrink: 0; padding: 0 8px; gap: 4px; overflow-x: auto; scrollbar-width: none;
             z-index: 18;
         }
         .project-bar::-webkit-scrollbar { display: none; }
@@ -546,7 +551,8 @@
             border: 1px solid rgba(var(--mono-tone), var(--mono-edge-alpha, 0.12));
             color: var(--text-secondary); vertical-align: middle;
         }
-        .resize-handle-v { width: 4px; background: var(--border); cursor: col-resize; flex-shrink: 0; }
+        /* touch-action: none 让触屏拖拽分栏时不触发页面滚动（改由指针事件接管） */
+        .resize-handle-v { width: 4px; background: var(--border); cursor: col-resize; flex-shrink: 0; touch-action: none; }
         .resize-handle-v:hover { background: var(--primary); }
 
         /* ========== 编辑区面板 ========== */
@@ -558,7 +564,7 @@
             padding: 2px 12px;
             background: rgba(var(--mono-tint, 30, 30, 30), calc(var(--mono-alpha) - 0.06));
             border-bottom: 1px solid rgba(var(--mono-tone), var(--mono-edge-alpha, 0.12));
-            height: 28px; flex-shrink: 0; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.6px;
+            height: var(--panel-header-h); flex-shrink: 0; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.6px;
             color: var(--text-secondary); gap: 8px;
             z-index: 10;
         }
@@ -589,12 +595,12 @@
         }
         .editor-textarea:focus-visible { box-shadow: inset 0 0 0 2px var(--primary); }
         .drag-hint {
-            display: none; position: absolute; top: 28px; left: 0; right: 0; bottom: 0;
+            display: none; position: absolute; top: var(--panel-header-h); left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.2); border: 2px dashed var(--primary); color: var(--primary);
             justify-content: center; align-items: center; font-size: 1.2rem; z-index: 10; pointer-events: none;
         }
         .code-panel.drag-over .drag-hint, .result-panel.drag-over .drag-hint { display: flex; }
-        .resize-handle-h { height: 4px; background: var(--border); cursor: row-resize; flex-shrink: 0; }
+        .resize-handle-h { height: 4px; background: var(--border); cursor: row-resize; flex-shrink: 0; touch-action: none; }
         .resize-handle-h:hover { background: var(--primary); }
 
         /* ========== 模态框通用（等宽浮层） ========== */
@@ -689,7 +695,8 @@
             border-radius: var(--shape-corner-medium); padding: 4px; display: none; flex-direction: column; gap: 2px; z-index: 500; min-width: 220px;
             box-shadow: var(--mono-lift), var(--mono-edge-strong);
         }
-        .theme-menu { left: 10px; }
+        /* top 用触发按钮高度推导，矮窗口下顶栏变矮时菜单仍紧贴按钮 */
+        .theme-menu { left: 10px; top: calc(100% + 4px); }
         .shortcut-hint-menu { right: 10px; }
         .theme-option { padding: 6px 12px; cursor: pointer; font-size: 0.85rem; border-radius: var(--shape-corner-small); }
         .theme-option:hover { background: rgba(var(--mono-tone), 0.18); }
@@ -750,7 +757,7 @@
 
         /* ========== 加载遮罩 ========== */
         .loading-overlay {
-            display: none; position: absolute; top: 28px; left: 0; right: 0; bottom: 0;
+            display: none; position: absolute; top: var(--panel-header-h); left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.4); justify-content: center; align-items: center; z-index: 11; color: #fff; font-size: 1rem;
         }
         .loading-overlay.visible { display: flex; }
@@ -784,6 +791,162 @@
             cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
         }
         .spec-panel .spec-copy-btn:hover { background: var(--button-hover); color: var(--text); }
+
+        /* ========== 响应式与多比例适配 ==========
+         * 设计取向：DevKit 是桌面优先的工具，窄屏不重排成"卡片流"，而是保持
+         *           「步骤 → 灵感 → 代码 → 结果」同一条操作链，只改变排列方向
+         *           与信息密度。断点分三类：
+         *             1) 宽度断点 1024 / 820 / 560：决定分栏还是堆叠、按钮是否
+         *                只留图标、正文字号；
+         *             2) 高度断点 520：横屏手机、分屏等矮窗口，压缩三条横向
+         *                chrome（改 --title-bar-h / --project-bar-h /
+         *                --panel-header-h 即可，drag-hint 与 loading-overlay
+         *                会自动跟随）；
+         *             3) 指针类型 pointer:coarse：触屏上放大点击热区与输入字号。
+         * 关键约束：
+         *   · 桌面端的拖拽分栏会给元素写内联 width / height / flex，窄屏下
+         *     必须用 !important 覆盖，并隐藏拖拽手柄；
+         *   · 行号栏与代码文本域必须始终同字号同行高，否则逐行错位——触屏
+         *     把输入字号抬到 16px 时两者要一起改。
+         */
+
+        /* ---------- 基础：移动端视口、安全区与滚动边界 ---------- */
+        html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+        /* 禁止下拉刷新/过度滚动：本工具持有未导出的代码，误触刷新会丢内容 */
+        body { overscroll-behavior: none; }
+        @supports (height: 100dvh) {
+            body { height: 100dvh; }    /* dvh 跟随移动端浏览器地址栏的收起/展开 */
+        }
+        /* 刘海屏安全区：取值与基础内边距一致，非刘海屏上不产生任何位移 */
+        @supports (padding: env(safe-area-inset-left)) {
+            .title-bar {
+                padding-left: max(16px, env(safe-area-inset-left));
+                padding-right: max(16px, env(safe-area-inset-right));
+            }
+            .project-bar { padding-left: max(8px, env(safe-area-inset-left)); }
+            body { padding-bottom: env(safe-area-inset-bottom); }
+        }
+
+        /* ---------- 触屏：热区与输入字号 ---------- */
+        @media (pointer: coarse) {
+            .icon-btn, .btn { min-height: 32px; padding: 6px 10px; }
+            .tab-item { padding: 10px; }
+            .theme-option { padding: 10px 12px; }
+            .context-menu div { padding: 10px 12px; }
+            .resize-handle-v { width: 10px; }
+            .resize-handle-h { height: 10px; }
+            /* 触屏上小于 16px 的输入控件会让 iOS 聚焦时自动放大页面；
+               行号栏必须与文本域同字号同行高，故一并抬高 */
+            .line-numbers, .editor-textarea, .tab-content textarea,
+            .export-modal-body input, .export-modal-body select { font-size: 16px; }
+            .line-numbers { line-height: 1.5; width: 48px; }
+            .editor-textarea { line-height: 1.5; }
+        }
+
+        /* ---------- 超宽屏（≥1800px）：把富余宽度还给侧栏，避免主编辑区过散 ---------- */
+        @media (min-width: 1800px) {
+            .tab-sidebar { width: 300px; }
+            .tab-list { max-height: 50vh; }
+            .current-file-name { max-width: 320px; }
+        }
+
+        /* ---------- ≤1024px：窄桌面 / 平板横屏 ---------- */
+        @media (max-width: 1024px) {
+            .tab-sidebar { width: 220px; min-width: 180px; }
+            .title-actions { gap: 4px; }
+            .icon-btn, .btn { padding: 4px 6px; }
+            .current-file-name { max-width: 120px; }
+        }
+
+        /* ---------- ≤820px 且高度足够：手机竖屏 / 小平板 → 纵向堆叠 ---------- */
+        @media (max-width: 820px) and (min-height: 520px) {
+            .main-body {
+                flex-direction: column;
+                overflow-y: auto; overflow-x: hidden;
+                -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+            }
+            .tab-sidebar {
+                width: auto !important; min-width: 0 !important; height: auto;
+                flex: none; border-right: none;
+                border-bottom: 1px solid rgba(var(--mono-tone), var(--mono-edge-alpha, 0.12));
+            }
+            /* 步骤列表由竖排改为横滑，省掉一整块纵向高度 */
+            .tab-list {
+                flex: none; max-height: none; flex-direction: row; gap: 4px;
+                overflow-x: auto; overflow-y: hidden; padding: 6px 8px;
+            }
+            .tab-list::-webkit-scrollbar { height: 4px; }
+            .tab-item { flex: 0 0 auto; }
+            .tab-item .tab-name { flex: none; max-width: 42vw; }
+            .tab-content { padding: 10px 12px 12px; }
+            .tab-content textarea { min-height: 72px; }
+            .tab-content .preview-mini { max-height: 30vh; }
+
+            .resize-handle-v, .resize-handle-h { display: none; }
+
+            .editor-area { flex: none; overflow: visible; }
+            .code-panel {
+                flex: none !important; height: auto !important; min-height: 46vh;
+                border-bottom: 1px solid rgba(var(--mono-tone), var(--mono-edge-alpha, 0.12));
+            }
+            .result-panel { flex: none; min-height: 30vh; }
+            .code-editor-wrapper { min-height: 40vh; }
+            .code-panel .editor-textarea { min-height: 40vh; }
+            .result-panel .editor-textarea { min-height: 26vh; }
+        }
+
+        /* ---------- ≤560px 且高度足够：手机竖屏 → 顶栏两行、按钮只留图标 ---------- */
+        @media (max-width: 560px) and (min-height: 520px) {
+            /* 顶栏拆成两行：品牌一行、按钮条一行，按钮条横向可滑 */
+            .title-bar { height: auto; min-height: var(--title-bar-h); flex-wrap: wrap; row-gap: 4px; }
+            .brand-group { flex: 1 1 100%; }
+            .title-actions {
+                flex: 1 1 100%; justify-content: flex-start; gap: 4px;
+                overflow-x: auto; scrollbar-width: none;
+            }
+            .title-actions::-webkit-scrollbar { display: none; }
+            .title-bar .btn-text { display: none; }     /* 图标化，避免按钮条过长 */
+            /* 按钮文字已强制隐藏，"文字"开关在此断点下不再有可观察效果，一并收起 */
+            #toggleBtnText { display: none; }
+
+            .panel-header { padding: 2px 8px; font-size: 0.7rem; letter-spacing: 0.3px; }
+            .panel-header .btn-text { display: none; }
+            .current-file-name { max-width: 90px; }
+
+            .modal-content { padding: 16px; width: 94%; max-height: 86vh; }
+            .theme-menu, .shortcut-hint-menu { min-width: 0; width: min(78vw, 240px); }
+            /* Toast 由居中改贴边，避免窄屏下左右溢出 */
+            .toast { left: 8px; right: 8px; transform: none; text-align: center; }
+        }
+
+        /* ---------- 矮窗口（≤520px 高）：横屏手机、分屏 → 压缩纵向 chrome ---------- */
+        @media (max-height: 520px) {
+            :root {
+                --title-bar-h: 30px;
+                --project-bar-h: 26px;
+                --panel-header-h: 22px;
+            }
+            .title-bar { font-size: 0.75rem; }
+            .panel-header { font-size: 0.68rem; letter-spacing: 0.3px; }
+            .tab-header { padding: 4px 10px; }
+            .tab-list { max-height: 26vh; }
+            .tab-content { padding: 8px; gap: 6px; }
+            .tab-content textarea { min-height: 44px; }
+            .tab-content .preview-mini { min-height: 44px; max-height: 22vh; }
+            .drag-hint { font-size: 1rem; }
+            .modal-content { padding: 16px; max-height: 92vh; }
+
+            /* 横屏手机：宽度够、高度紧，保持左右分栏（纵向堆叠在这里反而不可用） */
+            @media (orientation: landscape) {
+                .tab-sidebar {
+                    width: 200px !important; min-width: 168px; height: 100%;
+                    border-right: 1px solid rgba(var(--mono-tone), var(--mono-edge-alpha, 0.12));
+                    border-bottom: none;
+                }
+                .tab-list { flex-direction: column; max-height: 30vh; overflow-y: auto; overflow-x: hidden; }
+                .tab-item .tab-name { max-width: none; }
+            }
+        }
 
         /* ========== 等宽主题无障碍与降级兜底 ==========
          * 1) 用户系统开启"减少动态效果"时，取消过渡动画（对应 WCAG 2.3.3）；
@@ -3939,8 +4102,8 @@ graph LR
                 const vHandle = document.getElementById('vHandle');
                 let vResizing = false, vTargetWidth = null;
                 let vResizeRaf = null;
-                vHandle.addEventListener('mousedown', (e) => { e.preventDefault(); vResizing = true; document.body.style.cursor = 'col-resize'; });
-                window.addEventListener('mousemove', (e) => {
+                vHandle.addEventListener('pointerdown', (e) => { e.preventDefault(); vResizing = true; document.body.style.cursor = 'col-resize'; });
+                window.addEventListener('pointermove', (e) => {
                     if (!vResizing) return;
                     vTargetWidth = e.clientX - document.getElementById('tabSidebar').getBoundingClientRect().left;
                     if (store.getState().globalSettings.performanceMode) {
@@ -3954,13 +4117,13 @@ graph LR
                         if (vTargetWidth > 180 && vTargetWidth < 500) document.getElementById('tabSidebar').style.width = vTargetWidth + 'px';
                     }
                 });
-                window.addEventListener('mouseup', () => { vResizing = false; document.body.style.cursor = ''; });
+                window.addEventListener('pointerup', () => { vResizing = false; document.body.style.cursor = ''; });
 
                 const hHandle = document.getElementById('hHandle');
                 let hResizing = false, hTargetY = null;
                 let hResizeRaf = null;
-                hHandle.addEventListener('mousedown', (e) => { e.preventDefault(); hResizing = true; document.body.style.cursor = 'row-resize'; });
-                window.addEventListener('mousemove', (e) => {
+                hHandle.addEventListener('pointerdown', (e) => { e.preventDefault(); hResizing = true; document.body.style.cursor = 'row-resize'; });
+                window.addEventListener('pointermove', (e) => {
                     if (!hResizing) return;
                     const rect = document.getElementById('editorArea').getBoundingClientRect();
                     hTargetY = e.clientY - rect.top;
@@ -3983,7 +4146,12 @@ graph LR
                         }
                     }
                 });
-                window.addEventListener('mouseup', () => { hResizing = false; document.body.style.cursor = ''; });
+                window.addEventListener('pointerup', () => { hResizing = false; document.body.style.cursor = ''; });
+                // 触屏上若浏览器中途接管手势（来电、系统返回手势等），
+                // pointerup 不会到达，必须靠 pointercancel 复位拖拽状态
+                window.addEventListener('pointercancel', () => {
+                    vResizing = false; hResizing = false; document.body.style.cursor = '';
+                });
             },
 
             // ========== initShortcuts ==========
