@@ -143,14 +143,23 @@ def upload_asset(repo: str, token: str, release_id: int, path: Path) -> bool:
         return False
 
 
-def release_trunk(repo: str, token: str, trunk: str, sha: str, no_changes: bool) -> bool:
+def release_trunk(
+    repo: str, token: str, trunk: str, sha: str, mode: str, forced_tag: str | None = None
+) -> bool:
     trunk_dir = CODE_DIR / trunk
     files = sorted(trunk_dir.glob("deepseek_*.html"))
     if not files:
         print(f"[告警] {trunk} 下没有版本文件，跳过。")
         return True
 
-    tag = next_tag(trunk, existing_tags(repo, token, trunk))
+    existing = existing_tags(repo, token, trunk)
+    if forced_tag:
+        if forced_tag in existing:
+            print(f"[问题] 标签 {forced_tag} 已存在。换一个后缀，或删掉旧标签后重试。")
+            return False
+        tag = forced_tag
+    else:
+        tag = next_tag(trunk, existing)
     print(f"—— 主干 {trunk} → 标签 {tag}（{len(files)} 个附件）")
 
     if not create_tag(repo, token, tag, sha):
@@ -164,7 +173,7 @@ def release_trunk(repo: str, token: str, trunk: str, sha: str, no_changes: bool)
         {
             "tag_name": tag,
             "name": tag,
-            "body": build_notes(trunk, no_changes),
+            "body": build_notes(trunk, mode),
             "draft": False,
             "prerelease": False,
         },
@@ -194,30 +203,49 @@ def main() -> int:
     token = os.environ.get("GITHUB_TOKEN", "")
     before = os.environ.get("BEFORE_SHA", "").strip()
     after = os.environ.get("AFTER_SHA", "").strip()
+    dispatch_trunk = os.environ.get("DISPATCH_TRUNK", "").strip()
+    dispatch_suffix = os.environ.get("DISPATCH_SUFFIX", "").strip()
 
     if not repo or not token or not after:
         print("[问题] 需要 GITHUB_REPOSITORY、GITHUB_TOKEN、AFTER_SHA 环境变量。")
         return 1
 
-    changed = changed_trunks(repo, token, before, after)
-    all_trunks = local_trunks()
+    forced_tag: str | None = None
 
-    if changed is None:
-        targets = all_trunks
-        no_changes = False
-        reason = "无法比较提交范围，退化为为该主干下的全部主干发布"
-    elif changed:
-        targets = changed
-        no_changes = False
-        reason = "本次推送改动了：" + "、".join(changed)
-    else:
-        latest = latest_trunk()
-        if latest is None:
-            print("[问题] code/ 下没有任何主干目录。")
+    if dispatch_trunk:
+        # 手动触发：为指定主干补发一个 Release。用于自动发布覆盖不到的情况，
+        # 例如为已冻结、不会再被推送碰到的老主干留一个固定的下载入口。
+        if not (CODE_DIR / dispatch_trunk).is_dir():
+            print(
+                f"[问题] 找不到目录 code/{dispatch_trunk}。现有主干："
+                + "、".join(local_trunks())
+            )
             return 1
-        targets = [latest]
-        no_changes = True
-        reason = "本次推送未改动交付物文件，只给最新主干发一个「无功能更新」的 Release"
+        targets = [dispatch_trunk]
+        mode = "manual"
+        if dispatch_suffix:
+            forced_tag = f"{dispatch_trunk}.{dispatch_suffix}"
+        reason = f"手动触发，补发主干 {dispatch_trunk}"
+        if dispatch_suffix:
+            reason += f"（指定标签后缀 {dispatch_suffix}）"
+    else:
+        changed = changed_trunks(repo, token, before, after)
+        if changed is None:
+            targets = local_trunks()
+            mode = "changed"
+            reason = "无法比较提交范围，退化为为全部主干发布"
+        elif changed:
+            targets = changed
+            mode = "changed"
+            reason = "本次推送改动了：" + "、".join(changed)
+        else:
+            latest = latest_trunk()
+            if latest is None:
+                print("[问题] code/ 下没有任何主干目录。")
+                return 1
+            targets = [latest]
+            mode = "no_changes"
+            reason = "本次推送未改动交付物文件，只给最新主干发一个「无功能更新」的 Release"
 
     print(f"仓库 {repo} · {reason}")
     print(f"将发布：{'、'.join(targets) if targets else '（无）'}")
@@ -228,7 +256,7 @@ def main() -> int:
         if not (CODE_DIR / trunk).is_dir():
             print(f"[告警] code/{trunk} 不存在，跳过。")
             continue
-        if not release_trunk(repo, token, trunk, after, no_changes):
+        if not release_trunk(repo, token, trunk, after, mode, forced_tag):
             ok = False
 
     print()
