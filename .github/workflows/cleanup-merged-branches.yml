@@ -1,9 +1,13 @@
 # 清理已合并 PR 遗留的分支
 #
-# 两种触发：
-#   · PR 一合并就删（pull_request_target 的 closed 事件）——走定向模式，
-#     只处理刚合并那一个 PR 的 head 分支。
-#   · 每周一定时全量扫描——兜底，清理漏掉的或当时因故跳过的。
+# 三种触发，跑的都是同一套全量扫描，行为完全一致：
+#   · PR 一合并（pull_request_target 的 closed 事件）—— 合并后立刻清一次
+#   · 每周一定时 —— 兜底
+#   · 手动触发 —— 默认试运行，只打印不删
+#
+# 刻意不做「只处理刚合并那一个 PR」的定向模式：扫描本身是幂等的、只有几次
+# API 调用，而全量扫描能顺带清掉历史积压。定向模式省下的那点开销，换来的是
+# 「为什么这条分支还在」的困惑，不划算。
 #
 # 必须用 pull_request_target 而不是 pull_request：来自 fork 的 PR 在
 # pull_request 事件下只能拿到只读令牌，删不了任何分支。
@@ -48,7 +52,6 @@ jobs:
       - name: 运行清理
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # 只有手动触发时 inputs 才有值；合并与定时触发下为空 → 实际删除
           DRY_RUN: ${{ inputs.dry_run == true && '1' || '' }}
-          # 定向模式：PR 合并后只处理这一个；定时与手动触发时为空，走全量
-          PR_NUMBER: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.number || '' }}
         run: python3 .github/scripts/cleanup_branches.py

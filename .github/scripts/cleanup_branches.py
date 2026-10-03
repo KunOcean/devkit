@@ -6,11 +6,9 @@ GitHub 的「自动删除头部分支」只对同仓分支生效：来自 fork �
 head 分支留在 fork 上；而为了让堆叠 PR 能指定 base，feature 分支又在上游
 也放了一份。两边都会越积越多，本脚本负责清理上游这一份。
 
-两种运行模式：
-  · 定向模式：设置 PR_NUMBER，只处理该 PR 的 head 分支。用于「PR 一合并
-    就删」——由 pull_request_target 的 closed 事件触发时使用。
-  · 全量模式：不设 PR_NUMBER，扫描最近 100 个已合并 PR，清理所有残留分支。
-    用于每周定时兜底（漏掉的、或当时因故跳过的）。
+每次运行都做全量扫描：拉取最近 100 个已关闭的 PR，凡是已合并的，就把它
+head 分支在本仓库的残留删掉。这个动作是幂等的，多处触发（PR 合并时、每周
+定时、手动）同时存在也不会互相干扰，且每次运行都会顺带清掉历史积压。
 
 安全规则（任一命中即跳过）：
   · 默认分支（main）永不删除
@@ -23,11 +21,9 @@ head 分支留在 fork 上；而为了让堆叠 PR 能指定 base，feature 分�
 另配一个有 fork 写权限的令牌，本脚本刻意不碰。
 
 用法：
-    本地全量试跑：
+    本地试跑（只打印不删）：
         DRY_RUN=1 GITHUB_REPOSITORY=bmdy1145/devkit GITHUB_TOKEN=xxx \\
             python3 .github/scripts/cleanup_branches.py
-    本地定向试跑：
-        PR_NUMBER=9 DRY_RUN=1 ... python3 .github/scripts/cleanup_branches.py
 
 退出码：0 = 执行完毕（含跳过）；1 = 出现无法忽略的错误。
 """
@@ -41,6 +37,7 @@ import urllib.error
 import urllib.request
 
 API = "https://api.github.com"
+MAX_PRS = 100
 
 
 def api(method: str, url: str, token: str):
@@ -57,53 +54,12 @@ def api(method: str, url: str, token: str):
         return e.code, None
 
 
-def collect_targets(repo: str, token: str, target_pr: str, default_branch: str):
-    """返回 (待删分支列表, 保留分支集合)。出错时抛 RuntimeError。"""
-    status, branches = api("GET", f"{API}/repos/{repo}/branches?per_page=100", token)
-    if status != 200:
-        raise RuntimeError(f"读取分支列表失败（HTTP {status}）")
-    existing = {b["name"] for b in (branches or [])}
-
-    status, open_prs = api("GET", f"{API}/repos/{repo}/pulls?state=open&per_page=100", token)
-    if status != 200:
-        raise RuntimeError(f"读取打开的 PR 失败（HTTP {status}）")
-    protected = {pr["base"]["ref"] for pr in (open_prs or [])}
-    protected.add(default_branch)
-
-    if target_pr:
-        status, pr = api("GET", f"{API}/repos/{repo}/pulls/{target_pr}", token)
-        if status != 200 or not pr:
-            raise RuntimeError(f"读取 PR #{target_pr} 失败（HTTP {status}）")
-        if not pr.get("merged_at"):
-            print(f"PR #{target_pr} 未合并（仅关闭），其分支保留。")
-            return [], protected
-        closed_prs = [pr]
-    else:
-        status, closed_prs = api(
-            "GET",
-            f"{API}/repos/{repo}/pulls?state=closed&per_page=100&sort=updated&direction=desc",
-            token,
-        )
-        if status != 200:
-            raise RuntimeError(f"读取已关闭的 PR 失败（HTTP {status}）")
-
-    candidates: list[str] = []
-    for pr in closed_prs or []:
-        if not pr.get("merged_at"):
-            continue
-        ref = (pr.get("head") or {}).get("ref")
-        if ref and ref in existing and ref not in protected and ref not in candidates:
-            candidates.append(ref)
-    return candidates, protected
-
-
 def main() -> int:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
 
     repo = os.environ.get("GITHUB_REPOSITORY", "")
     token = os.environ.get("GITHUB_TOKEN", "")
-    target_pr = os.environ.get("PR_NUMBER", "").strip()
     dry_run = os.environ.get("DRY_RUN", "") not in ("", "0", "false")
 
     if not repo or not token:
@@ -116,16 +72,40 @@ def main() -> int:
         return 1
     default_branch = repo_info.get("default_branch", "main")
 
-    mode = f"定向（PR #{target_pr}）" if target_pr else "全量"
-    print(f"仓库 {repo} · 模式：{mode} · 默认分支 {default_branch}")
+    status, branches = api("GET", f"{API}/repos/{repo}/branches?per_page=100", token)
+    if status != 200:
+        print(f"[问题] 读取分支列表失败（HTTP {status}）。")
+        return 1
+    existing = {b["name"] for b in (branches or [])}
 
-    try:
-        candidates, protected = collect_targets(repo, token, target_pr, default_branch)
-    except RuntimeError as e:
-        print(f"[问题] {e}")
+    status, open_prs = api("GET", f"{API}/repos/{repo}/pulls?state=open&per_page=100", token)
+    if status != 200:
+        print(f"[问题] 读取打开的 PR 失败（HTTP {status}）。")
+        return 1
+    protected = {pr["base"]["ref"] for pr in (open_prs or [])}
+    protected.add(default_branch)
+
+    status, closed_prs = api(
+        "GET",
+        f"{API}/repos/{repo}/pulls?state=closed&per_page={MAX_PRS}&sort=updated&direction=desc",
+        token,
+    )
+    if status != 200:
+        print(f"[问题] 读取已关闭的 PR 失败（HTTP {status}）。")
         return 1
 
-    print(f"保留中的分支（默认分支 + 打开中的 PR 的 base）：{', '.join(sorted(protected))}")
+    candidates: list[str] = []
+    for pr in closed_prs or []:
+        if not pr.get("merged_at"):
+            continue
+        ref = (pr.get("head") or {}).get("ref")
+        if ref and ref in existing and ref not in protected and ref not in candidates:
+            candidates.append(ref)
+
+    mode = "试运行（只打印）" if dry_run else "实际删除"
+    print(f"仓库 {repo} · 模式：{mode} · 默认分支 {default_branch}")
+    print(f"已有分支 {len(existing)} 个，扫描最近 {len(closed_prs or [])} 个已关闭 PR")
+    print(f"保留：{', '.join(sorted(protected))}")
     print()
 
     if not candidates:
