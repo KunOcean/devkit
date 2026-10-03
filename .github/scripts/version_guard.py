@@ -35,6 +35,7 @@ VARIANTS = {"Glass", "Neon", "Mono", "Clean", "Material", "Minimal", "Premium", 
 
 problems: list[str] = []
 warnings: list[str] = []
+infos: list[str] = []
 
 
 def fail(where: str, msg: str) -> None:
@@ -43,6 +44,10 @@ def fail(where: str, msg: str) -> None:
 
 def warn(where: str, msg: str) -> None:
     warnings.append(f"{where}: {msg}")
+
+
+def info(where: str, msg: str) -> None:
+    infos.append(f"{where}: {msg}")
 
 
 def split_version(version: str):
@@ -172,8 +177,8 @@ def check_trunk(trunk: Path) -> None:
         fail(rel_dir, f"同一主干下各皮肤的迭代层不一致：{detail}")
 
     # 结构块是否列出同主干的全部版本。
-    # 仅作告警，不当问题：本项目惯例是「结构块 = 该文件创建那一刻的快照」，
-    # 后续新增的版本不会回填进老文件，因此老文件列不全属正常。
+    # 仅作信息，既不是问题也不计告警：本项目惯例是「结构块 = 该文件创建那一刻
+    # 的快照」，后续新增的版本不会回填进老文件，因此老文件列不全属正常。
     expected = set(versions.values())
     for path in files:
         rel = path.relative_to(ROOT).as_posix()
@@ -185,10 +190,14 @@ def check_trunk(trunk: Path) -> None:
         block = m.group(0)
         missing = sorted(v for v in expected if v not in block)
         if missing:
-            warn(rel, f"结构块未列出同主干的这些版本（快照惯例下属正常）：{', '.join(missing)}")
+            info(rel, f"结构块未列出同主干的这些版本（快照惯例下属正常）：{', '.join(missing)}")
 
 
 def main() -> int:
+    # 中文输出固定按 UTF-8 打印，避免 Windows 本地与 CI 日志乱码
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+
     if not CODE_DIR.is_dir():
         print(f"找不到目录：{CODE_DIR}", file=sys.stderr)
         return 1
@@ -196,13 +205,15 @@ def main() -> int:
     for trunk in sorted(p for p in CODE_DIR.iterdir() if p.is_dir()):
         check_trunk(trunk)
 
-    for w in warnings:
-        print(f"[告警] {w}")
     for p in problems:
         print(f"[问题] {p}")
+    for w in warnings:
+        print(f"[告警] {w}")
+    for i in infos:
+        print(f"[信息] {i}")
 
     print()
-    print(f"检查完成：{len(problems)} 个问题，{len(warnings)} 条告警。")
+    print(f"检查完成：{len(problems)} 个问题，{len(warnings)} 条告警，{len(infos)} 条信息。")
     return 1 if problems else 0
 
 
