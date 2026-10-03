@@ -1,0 +1,3 @@
+├── index.html                       # GitHub Pages 站点入口，跳转到最新版本文件
+├── docs/
+│   └── index.html                   # 备用入口（发布自根目录时可通过 /docs/ 访问）
