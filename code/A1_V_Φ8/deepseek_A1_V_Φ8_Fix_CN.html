@@ -2089,9 +2089,9 @@ graph LR
             { version: 'A1_V_Φ6', note: '精简规范提示词【协作流程】：删除独立的询问输出模式步骤，理解确认与输出模式合并为一次数字选项（1 完整代码 / 2 预览版 / 3 描述有误 / 4 取消），确认后直接输出，不再二次询问', important: true, parent: 'A1_V_Φ5' },
             { version: 'A1_V_Φ6_CN', note: '中文版：同步应用主干版本号 A1_V_Φ6 + 语言后缀 _CN', important: true, parent: 'A1_V_Φ6' },
             { version: 'A1_V_Φ7', note: '修改规范提示词【双版本输出规范】：新增【双版本派生逻辑】章节（领先版/落后版判定、从领先版翻译派生、翻译记忆库复用规则、禁止全文重译）；默认输出领先版；追问措辞改为"若当前为领先版则输出落后版"；已废弃概念新增"落后版独立迭代模式"', important: true, parent: 'A1_V_Φ6' },
-            { version: 'A1_V_Φ7_CN', note: '中文版：同步应用主干版本号 A1_V_Φ7 + 语言后缀 _CN', important: true, parent: 'A1_V_Φ7' }
+            { version: 'A1_V_Φ7_CN', note: '中文版：同步应用主干版本号 A1_V_Φ7 + 语言后缀 _CN', important: true, parent: 'A1_V_Φ7' },
             { version: 'A1_V_Φ8', note: '全站响应式、多比例与触屏适配（Φ 数字递增 Φ7 → Φ8）：viewport 增加 viewport-fit=cover，body 高度改为 100dvh 并加 env(safe-area-inset-*) 安全区与 overscroll-behavior: none；新增宽度断点 ≥1800 / ≤1024 / ≤820 / ≤560 与高度断点 ≤520，窄屏改为纵向堆叠、步骤列表横滑、顶栏两行图标化；触屏 pointer:coarse 放大热区并把输入控件与行号栏同步抬到 16px；分栏拖拽由 mouse* 改 pointer* 并加 touch-action: none 与 pointercancel 复位；顶栏/项目栏/面板头高度抽为 --title-bar-h / --project-bar-h / --panel-header-h 令牌', important: true, parent: 'A1_V_Φ7' },
-            { version: 'A1_V_Φ8_CN', note: '中文版：同步应用主干版本号 A1_V_Φ8 + 语言后缀 _CN', important: true, parent: 'A1_V_Φ8' }
+            { version: 'A1_V_Φ8_CN', note: '中文版：同步应用主干版本号 A1_V_Φ8 + 语言后缀 _CN', important: true, parent: 'A1_V_Φ8' },
             { version: 'A1_V_Φ8_Fix', note: '跨风格同步缺陷修补（在 Φ8 上追加第四层英文标识 Fix，Φ 数字不递增）：一、基准版补齐此前仅 Glass/Neon/Mono 具备的无障碍与降级兜底——新增 @media (prefers-reduced-motion: reduce) 取消过渡与动画（WCAG 2.3.3），新增 @supports not (box-shadow: 0 0 0 1px red) 在极老浏览器回退为纯色描边；二、四版统一修复窄屏浮层菜单遮挡——≤560px 顶栏折成两行后菜单写死的 top: 40px 会压住顶栏，改为给 .title-bar 建立定位参照、菜单用 top: calc(100% + Npx) 推导', important: true, parent: 'A1_V_Φ8' },
             { version: 'A1_V_Φ8_Fix_CN', note: '中文版：同步应用主干版本号 A1_V_Φ8_Fix + 语言后缀 _CN', important: true, parent: 'A1_V_Φ8_Fix' }
         ];
