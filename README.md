@@ -105,12 +105,19 @@ devkit/
 │   │   ├── deepseek_A1_V_Φ8_Neon_Fix_CN.html       # 电光霓虹
 │   │   ├── deepseek_A1_V_Φ8_Glass_Fix_CN.html      # 毛玻璃
 │   │   └── deepseek_A1_V_Φ8_Fix_CN.html            # 基准皮肤
-│   └── A1_V_Φ7/                     # 上一代主干（与 Φ8 并行可选）
+│   ├── A1_V_Φ7/                     # 上一代主干（与 Φ8 并行可选）
+│   │   ├── index.html                            # 本分支版本列表
+│   │   ├── deepseek_A1_V_Φ7_Mono_CN.html         # 全站等宽 + 双轴主题
+│   │   ├── deepseek_A1_V_Φ7_Neon_CN.html         # 电光霓虹
+│   │   ├── deepseek_A1_V_Φ7_Glass_CN.html        # 毛玻璃
+│   │   └── deepseek_A1_V_Φ7_CN.html              # 基准皮肤
+│   ├── A1_V_Φ5/                     # 早期主干（历史参照）
+│   │   ├── index.html                            # 本分支版本列表
+│   │   ├── deepseek_A1_V_Φ5_Fix_CN.html          # 图标字体本地内嵌 + 规范新增版本红线
+│   │   └── deepseek_A1_V_Φ5_CN.html              # 修复 Φ4 遗留 9 项 + 追加 4 项复核修正
+│   └── A1_V_Φ4/                     # 早期主干（历史参照）
 │       ├── index.html                            # 本分支版本列表
-│       ├── deepseek_A1_V_Φ7_Mono_CN.html         # 全站等宽 + 双轴主题
-│       ├── deepseek_A1_V_Φ7_Neon_CN.html         # 电光霓虹
-│       ├── deepseek_A1_V_Φ7_Glass_CN.html        # 毛玻璃
-│       └── deepseek_A1_V_Φ7_CN.html              # 基准皮肤
+│       └── deepseek_A1_V_Φ4_CN.html              # 全面修复 15 项缺陷
 └── .claude/skills/devkit-spec/      # Claude Code 技能（版本与协作规范 + 版本相关模板）
 ```
 
