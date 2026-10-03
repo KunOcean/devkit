@@ -3,6 +3,12 @@
 # 默认只报告、不拦截：校验失败会在 PR 上显示红叉，但不会挡住合并。
 # 若要变成合并硬门槛，需在仓库 Rules 里把「版本号与结构一致性」设为必需状态检查。
 #
+# 触发范围（刻意不设 paths 过滤）：
+#   · 每个 PR 都跑，不论改了哪些文件。若加了 paths 过滤，不在过滤内的 PR 永远
+#     不会回报检查，一旦日后开启「必需状态检查」，那些 PR 会被永久卡死。
+#   · 合并进 main 后再跑一次，接住压缩合并可能产生的意外差异。
+#   · 支持手动触发。
+#
 # 校验内容见 .github/scripts/version_guard.py，本地可用同一条命令运行：
 #     python3 .github/scripts/version_guard.py
 
@@ -10,12 +16,9 @@ name: 版本结构校验
 
 on:
   pull_request:
-    paths:
-      - 'code/**'
-      - '.github/**'
-      - 'docs/**'
-      - 'CLAUDE.md'
-      - 'README.md'
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
