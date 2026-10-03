@@ -9,8 +9,9 @@
 # 默认：所有改动需所有者审阅
 *                       @bmdy1145 @nahida38454
 
-# 版本产物：改动直接改变对外交付内容
-/code/                  @bmdy1145 @nahida38454
+# 项目内容：改动直接改变对外交付内容
+/projects/              @bmdy1145 @nahida38454
+/projects/devkit/code/  @bmdy1145 @nahida38454
 
 # 协作约定与自动化：改动会改变门槛本身，需更谨慎
 /CLAUDE.md              @bmdy1145 @nahida38454

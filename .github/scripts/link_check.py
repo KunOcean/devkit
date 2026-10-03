@@ -40,6 +40,10 @@ def is_external(target: str) -> bool:
         return True
     if target.startswith("#"):
         return True
+    # 站点绝对路径（以 / 开头）：它相对于站点根解析，与文件在磁盘上的位置
+    # 无关，本地无法校验，跳过而不是误判为失效（404.html 的跳转链接即是这种）。
+    if target.startswith("/"):
+        return True
     # 模板占位符，例如 {{ url }} 或 ${{ ... }}
     if "{{" in target or "${" in target:
         return True

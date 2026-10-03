@@ -33,7 +33,8 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-CODE_DIR = ROOT / "code"
+# DevKit 交付物已迁入项目层
+CODE_DIR = ROOT / "projects" / "devkit" / "code"
 
 ERROR_RE = re.compile(r"CONSOLE.*?(Uncaught|SyntaxError|TypeError|ReferenceError)")
 BODY_RE = re.compile(r'<body[^>]*\bclass="([^"]*)"', re.I)
@@ -118,7 +119,8 @@ def run_one(browser: str, path: Path, rel: str) -> None:
 
     # 版本文件要求 <body> 带上主题类名（说明初始化脚本跑到了设置主题那一步）；
     # 导航页是静态页，本来就没有类名，只要求 <body> 存在。
-    is_nav = path.name == "index.html"
+    # 版本文件的命名固定为 deepseek_*.html，其余都是导航/站点页
+    is_nav = not path.name.startswith("deepseek_")
     body = BODY_RE.search(dom_text)
     if is_nav:
         if not re.search(r"<body\b", dom_text):
@@ -146,9 +148,18 @@ def main() -> int:
     # 导航页此前不在覆盖范围内，但它们是访客的实际入口，改坏了同样致命。
     files = sorted(CODE_DIR.glob("*/deepseek_*.html"))
     files += sorted(CODE_DIR.glob("*/index.html"))
-    root_index = ROOT / "index.html"
-    if root_index.exists():
-        files.append(root_index)
+    # 三层导航页：code/ 目录页、DevKit 项目落地页、根（项目选择台）。
+    # 此前只扫了 code/*/index.html，漏掉 code/index.html 本身——注释声称覆盖
+    # 三层导航页，实际只有两层。
+    for nav in (
+        CODE_DIR / "index.html",
+        CODE_DIR.parent / "index.html",
+        ROOT / "index.html",
+        ROOT / "404.html",
+        ROOT / "projects" / "index.html",
+    ):
+        if nav.exists() and nav not in files:
+            files.append(nav)
     if not files:
         print("[问题] 没有找到任何可测的 HTML 文件。")
         return 1

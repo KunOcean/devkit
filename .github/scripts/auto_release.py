@@ -39,7 +39,11 @@ UPLOAD_API = "https://uploads.github.com"
 ZERO_SHA = "0" * 40
 
 ROOT = Path(__file__).resolve().parents[2]
-CODE_DIR = ROOT / "code"
+# DevKit 已迁入项目层。发布仍只作用于 DevKit 一个项目；路径收敛为常量，
+# 日后真要泛化到多项目时，改动点集中在这里与 changed_trunks 的前缀判断。
+PROJECT = "devkit"
+CODE_PREFIX = ("projects", PROJECT, "code")
+CODE_DIR = ROOT.joinpath(*CODE_PREFIX)
 PHI_RE = re.compile(r"Φ(\d+)")
 
 
@@ -96,11 +100,17 @@ def changed_trunks(repo: str, token: str, before: str, after: str) -> list[str] 
         return None
     found: list[str] = []
     for f in data.get("files", []):
+        # 跳过纯重命名：整棵 code/ 搬进项目层的那次提交，每个文件都只是换了
+        # 路径，若按「路径首段」判定会被认成四个主干都改了，一次发出四个
+        # Release。跳过之后该提交落到「无功能更新」分支，只发最新主干一个。
+        if f.get("status") == "renamed":
+            continue
         name = f.get("filename", "")
         parts = name.split("/")
-        if len(parts) >= 3 and parts[0] == "code":
-            if parts[1] not in found:
-                found.append(parts[1])
+        # 路径形态：projects/devkit/code/<主干>/<文件>
+        if len(parts) >= 4 and tuple(parts[:3]) == CODE_PREFIX:
+            if parts[3] not in found:
+                found.append(parts[3])
     return found
 
 
@@ -229,7 +239,7 @@ def main() -> int:
         # 例如为已冻结、不会再被推送碰到的老主干留一个固定的下载入口。
         if not (CODE_DIR / dispatch_trunk).is_dir():
             print(
-                f"[问题] 找不到目录 code/{dispatch_trunk}。现有主干："
+                f"[问题] 找不到目录 projects/{PROJECT}/code/{dispatch_trunk}。现有主干："
                 + "、".join(local_trunks())
             )
             return 1
@@ -266,7 +276,7 @@ def main() -> int:
     ok = True
     for trunk in targets:
         if not (CODE_DIR / trunk).is_dir():
-            print(f"[告警] code/{trunk} 不存在，跳过。")
+            print(f"[告警] projects/{PROJECT}/code/{trunk} 不存在，跳过。")
             continue
         if not release_trunk(repo, token, trunk, after, mode, forced_tag):
             ok = False
