@@ -87,7 +87,8 @@ devkit/
 ├── index.html                       # GitHub Pages 落地页（版本选择台）
 ├── docs/
 │   ├── .gitkeep                     # 仅占位（git 无法跟踪空目录）
-│   └── branching.md                 # 分支与 PR 约定（由 CLAUDE.md 用 @ 导入）
+│   ├── branching.md                 # 分支与 PR 约定（由 CLAUDE.md 用 @ 导入）
+│   └── github-settings.md           # GitHub 仓库设置手册（分支保护、Actions 等网页端配置）
 ├── code/
 │   ├── index.html                   # /code/ 目录索引，列出各分支
 │   ├── A1_V_Φ8/                     # 当前主干（Φ7 上的增量修改）
