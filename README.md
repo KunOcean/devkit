@@ -85,6 +85,9 @@ devkit/
 ├── SECURITY.md / SECURITY.en.md    # 安全策略（必须留在根目录，Security 选项卡据此显示）
 ├── LICENSE                          # GPLv3 许可证全文（必须留在根目录）
 ├── index.html                       # GitHub Pages 落地页（版本选择台）
+├── .github/                         # PR 模板、CODEOWNERS、工作流、Dependabot
+│   ├── workflows/                   # 版本结构校验、仓库体检、标签发布、分支清理、PR 标签
+│   └── scripts/                     # 各工作流调用的检查脚本，本地可同命令运行
 ├── docs/
 │   ├── .gitkeep                     # 仅占位（git 无法跟踪空目录）
 │   ├── branching.md                 # 分支与 PR 约定（由 CLAUDE.md 用 @ 导入）
