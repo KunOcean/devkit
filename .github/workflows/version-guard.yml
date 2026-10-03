@@ -21,8 +21,9 @@ on:
   push:
     branches: [main]
   schedule:
-    # 每周一 03:30 UTC
-    - cron: '0 3 * * 1'
+    # 每周一 03:30 UTC（北京时间 11:30）。刻意与「清理已合并分支」错开半小时，
+    # 两条定时任务不同时挤在一起。
+    - cron: '30 3 * * 1'
   workflow_dispatch:
 
 permissions:

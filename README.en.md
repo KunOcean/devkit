@@ -50,13 +50,14 @@ Eight of the nine skins (all but the baseline) unify on a three-state `themePref
 
 In the version string, `Glass` / `Neon` / `Mono` / `Clean` / `Material` / `Minimal` / `Premium` / `Shadcn` are **variant markers** (they occupy no layer) while `Fix` is the actual 4th-layer English tag — the Fix layer is a cross-skin synchronised defect fix.
 
-The previous generation `A1_V_Φ7` is available **in parallel** with Φ8 under `code/A1_V_Φ7/`, with four skins (baseline / glass / neon / monospace).
+The previous generation `A1_V_Φ7` is available **in parallel** with Φ8 under `code/A1_V_Φ7/`, with four skins (baseline / glass / neon / monospace). Two earlier generations, `A1_V_Φ5` (two versions) and `A1_V_Φ4` (one version), are also kept under `code/` for historical reference — neither has skin variants.
 
 ## Usage
 
-1. Pick a skin from the site home page, or download `code/A1_V_Φ8/deepseek_A1_V_Φ8_Clean_Fix_CN.html` directly
-2. Double-click to open it in a browser (Chrome / Edge or any modern browser)
-3. Pick a step under "Workflow Steps" → fill in the inspiration and paste your code → click "Copy" → paste into your AI chat tool
+1. **Easiest: grab a Release.** Every update to `main` is published automatically, packaged per main line with all of that generation's skins attached — one click, no browsing. See https://github.com/bmdy1145/devkit/releases
+2. Or pick a skin from the site home page, or download `code/A1_V_Φ8/deepseek_A1_V_Φ8_Clean_Fix_CN.html` directly
+3. Double-click to open it in a browser (Chrome / Edge or any modern browser)
+4. Pick a step under "Workflow Steps" → fill in the inspiration and paste your code → click "Copy" → paste into your AI chat tool
 
 > Note: directory selection and original-file deletion rely on the browser's File System Access API (best supported on Chromium-based browsers).
 
@@ -133,6 +134,10 @@ The site entry is the **root-level** `index.html`. It is a **version picker** (l
 | `/code/` | Branch index (Φ8 / Φ7) |
 | `/code/A1_V_Φ8/` | Version list for the current main line (nine skins) |
 | `/code/A1_V_Φ7/` | Version list for the previous main line (four skins, parallel with Φ8) |
+| `/code/A1_V_Φ5/` | Early main line (two versions, historical reference) |
+| `/code/A1_V_Φ4/` | Early main line (one version, historical reference) |
+
+Beyond Pages there is a **download entry point**: the repository's Releases page (`/releases`), maintained automatically by `.github/workflows/release-on-main.yml` — every update to `main` packages that main line's artifacts and attaches them. Downloading is easiest there; reading online is what Pages is for.
 
 GitHub Pages must therefore publish from **`/ (root)`**:
 
