@@ -58,12 +58,12 @@ devkit/
 ├── README.md / README.en.md        # 项目说明（必须留在根目录，GitHub 首页据此渲染）
 ├── SECURITY.md / SECURITY.en.md    # 安全策略（必须留在根目录，Security 选项卡据此显示）
 ├── LICENSE                          # GPLv3 许可证全文（必须留在根目录）
+├── index.html                       # 早期的根目录站点入口，保留兼容；正式入口在 docs/
 ├── docs/
 │   └── index.html                   # GitHub Pages 站点入口，跳转到最新版本文件
 ├── code/
 │   └── A1_V_Φ7/                     # 同一主干版本一个文件夹
-│       ├── deepseek_A1_V_Φ7_CN.html
-│       └── deepseek_A1_V_Φ7_Glass_CN.html
+│       └── deepseek_A1_V_Φ7_Glass_CN.html   # 当前最新（全站毛玻璃）
 └── .claude/skills/devkit-spec/      # Claude Code 技能（版本与协作规范 + 版本相关模板）
 ```
 

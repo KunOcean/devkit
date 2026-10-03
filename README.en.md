@@ -58,12 +58,12 @@ devkit/
 ├── README.md / README.en.md        # Documentation (must stay at root for GitHub to render it)
 ├── SECURITY.md / SECURITY.en.md    # Security policy (must stay at root for the Security tab)
 ├── LICENSE                          # Full text of the GPLv3 license (must stay at root)
+├── index.html                       # Legacy root-level site entry, kept for compatibility; the canonical one is under docs/
 ├── docs/
 │   └── index.html                   # GitHub Pages entry page, redirects to the latest version file
 ├── code/
 │   └── A1_V_Φ7/                     # One folder per main-line version
-│       ├── deepseek_A1_V_Φ7_CN.html
-│       └── deepseek_A1_V_Φ7_Glass_CN.html
+│       └── deepseek_A1_V_Φ7_Glass_CN.html   # Current latest (full-site glassmorphism)
 └── .claude/skills/devkit-spec/      # Claude Code skill (version & collaboration spec + version templates)
 ```
 
