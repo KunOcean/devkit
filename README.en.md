@@ -2,7 +2,6 @@
 
 # AI DevKit (DevKit · Chinese Edition)
 
-Current version: **A1_V_Φ8_Mono_Fix_CN** (full-site monospace skin · two-axis light/dark × accent, six palettes)
 Live preview: https://bmdy1145.github.io/devkit/
 Repository: https://github.com/bmdy1145/devkit
 

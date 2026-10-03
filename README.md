@@ -2,7 +2,6 @@
 
 # AI 开发快捷工具箱（DevKit · 中文版）
 
-当前版本：**A1_V_Φ8_Mono_Fix_CN**（全等宽皮肤 · 明暗 × 强调色两轴六配色）
 在线预览：https://bmdy1145.github.io/devkit/
 仓库：https://github.com/bmdy1145/devkit
 
