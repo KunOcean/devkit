@@ -105,12 +105,19 @@ devkit/
 │   │   ├── deepseek_A1_V_Φ8_Neon_Fix_CN.html       # Electric neon
 │   │   ├── deepseek_A1_V_Φ8_Glass_Fix_CN.html      # Glassmorphism
 │   │   └── deepseek_A1_V_Φ8_Fix_CN.html            # Baseline skin
-│   └── A1_V_Φ7/                     # Previous main line (parallel with Φ8)
+│   ├── A1_V_Φ7/                     # Previous main line (parallel with Φ8)
+│   │   ├── index.html                            # Version list for this branch
+│   │   ├── deepseek_A1_V_Φ7_Mono_CN.html         # Monospace + two-axis themes
+│   │   ├── deepseek_A1_V_Φ7_Neon_CN.html         # Electric neon
+│   │   ├── deepseek_A1_V_Φ7_Glass_CN.html        # Glassmorphism
+│   │   └── deepseek_A1_V_Φ7_CN.html              # Baseline skin
+│   ├── A1_V_Φ5/                     # Early main line (historical reference)
+│   │   ├── index.html                            # Version list for this branch
+│   │   ├── deepseek_A1_V_Φ5_Fix_CN.html          # Icon font embedded locally + spec red lines
+│   │   └── deepseek_A1_V_Φ5_CN.html              # Fixes 9 inherited defects + 4 review amendments
+│   └── A1_V_Φ4/                     # Early main line (historical reference)
 │       ├── index.html                            # Version list for this branch
-│       ├── deepseek_A1_V_Φ7_Mono_CN.html         # Monospace + two-axis themes
-│       ├── deepseek_A1_V_Φ7_Neon_CN.html         # Electric neon
-│       ├── deepseek_A1_V_Φ7_Glass_CN.html        # Glassmorphism
-│       └── deepseek_A1_V_Φ7_CN.html              # Baseline skin
+│       └── deepseek_A1_V_Φ4_CN.html              # Fixes 15 defects
 └── .claude/skills/devkit-spec/      # Claude Code skill (version & collaboration spec + version templates)
 ```
 

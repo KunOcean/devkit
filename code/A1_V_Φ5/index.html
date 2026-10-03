@@ -3,19 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>代码目录 · DevKit</title>
-<meta name="description" content="DevKit 各分支的代码目录索引。">
+<title>A1_V_Φ5 · DevKit</title>
+<meta name="description" content="DevKit A1_V_Φ5 分支的全部版本文件。">
 <!--
     ============================================================
     项目名称：AI 开发快捷工具箱（DevKit）· 站点外壳
-    文件性质：GitHub Pages 目录索引（/code/）。不属于 DevKit 应用的
-              版本架构，不占用版本号。
-    职责：列出各个分支目录，供逐层浏览。
+    文件性质：GitHub Pages 目录索引（/code/A1_V_Φ5/）。不属于 DevKit
+              应用的版本架构，不占用版本号。
+    职责：列出本分支下的全部版本文件，供逐层浏览。
     日期：2026-10-03
     版权：Copyright (C) 2026-至今  北冥的鱼, DeepSeek
     许可证：GPLv3
     ============================================================
-    维护提示：新增分支时，复制一个 <a class="card"> 块并改 href / 文案即可。
+    维护提示：新增版本时，复制一个 <a class="card"> 块，改 href / 版本号 /
+              说明 / 日期 / 大小即可。
+    说明：本主干下同时存在 Φ5 与 Φ5_Fix 两层，是历史形态——「同一主干下
+          各皮肤迭代层一致」这条约定是后来才确立的，老主干不适用。
     约定：href 中的 Φ 一律用百分号编码 %CE%A6（与仓库原 index.html 一致），
           避免个别浏览器/服务器对非 ASCII 路径处理不一致；页面显示文字仍写 Φ。
     ============================================================
@@ -24,13 +27,13 @@
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-        --tone: 187, 243, 81;
-        --tone2: 0, 188, 255;
-        --tint: 10, 12, 17;
-        --text: #e9f2ec;
-        --text2: #8b9aa6;
-        --primary: #bbf351;
-        --primary-fg: #08090d;
+        --tone: 167, 139, 250;
+        --tone2: 244, 114, 182;
+        --tint: 14, 12, 22;
+        --text: #eae6f5;
+        --text2: #948da6;
+        --primary: #c4b5fd;
+        --primary-fg: #0d0b14;
         --edge: 0.24;
         --radius: 10px;
         --mono: ui-monospace, 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
@@ -43,10 +46,10 @@
         font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, -apple-system, 'Microsoft YaHei', sans-serif;
         color: var(--text);
         background:
-            radial-gradient(1100px 700px at 10% -14%, rgba(187,243,81,0.10), transparent 58%),
-            radial-gradient(900px 620px at 96% 2%, rgba(0,188,255,0.09), transparent 60%),
-            radial-gradient(760px 520px at 50% 116%, rgba(187,243,81,0.06), transparent 58%),
-            #08090d;
+            radial-gradient(1100px 700px at 10% -14%, rgba(167,139,250,0.11), transparent 58%),
+            radial-gradient(900px 620px at 96% 2%, rgba(244,114,182,0.09), transparent 60%),
+            radial-gradient(760px 520px at 50% 116%, rgba(167,139,250,0.06), transparent 58%),
+            #0d0b14;
         background-attachment: fixed;
         line-height: 1.6;
         padding: 56px 24px 72px;
@@ -70,9 +73,12 @@
     nav.crumbs .here { color: var(--primary); }
 
     h1 {
+        font-family: var(--mono);
         font-size: 1.35rem; font-weight: 600;
-        text-shadow: 0 0 18px rgba(var(--tone), 0.45);
+        color: var(--primary);
+        text-shadow: 0 0 18px rgba(var(--tone), 0.55);
         margin-bottom: 6px;
+        word-break: break-all;
     }
     .sub { color: var(--text2); font-size: 0.88rem; margin-bottom: 32px; }
 
@@ -89,7 +95,7 @@
         background: linear-gradient(90deg, rgba(var(--tone), 0.4), transparent);
     }
 
-    /* ---------- 分支卡片 ---------- */
+    /* ---------- 版本卡片 ---------- */
     .card {
         display: block; text-decoration: none; color: inherit;
         background: rgba(var(--tint), 0.90);
@@ -108,22 +114,38 @@
     .card:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
 
     .card-top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-    .card-name {
+    .ver {
         font-family: var(--mono);
         font-size: 1rem; font-weight: 600; color: var(--primary);
         text-shadow: 0 0 14px rgba(var(--tone), 0.55);
         word-break: break-all;
     }
+    .latest {
+        font-family: var(--mono); font-size: 0.68rem; font-weight: 600;
+        color: var(--primary-fg); background: var(--primary);
+        border-radius: 999px; padding: 1px 9px; margin-left: 8px;
+        vertical-align: middle; white-space: nowrap;
+        box-shadow: 0 0 16px -4px rgba(var(--tone), 1);
+    }
     .card-go { font-size: 0.8rem; color: var(--text2); white-space: nowrap; }
     .card:hover .card-go { color: var(--primary); }
     /* 注意：这是 span，必须显式转块级，否则垂直 margin 不生效 */
     .card-desc { display: block; font-size: 0.85rem; color: var(--text2); margin-top: 6px; }
-    .card-count {
-        display: inline-block; margin-top: 10px;
-        font-family: var(--mono); font-size: 0.74rem;
+
+    .meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .chip {
+        font-family: var(--mono); font-size: 0.72rem;
         color: var(--text2);
         border: 1px solid rgba(var(--tone), 0.25);
         border-radius: 999px; padding: 1px 10px;
+    }
+    .chip.lang { border-color: rgba(var(--tone2), 0.35); color: #f9a8d4; }
+
+    .filename {
+        display: block; margin-top: 12px;
+        font-family: var(--mono); font-size: 0.74rem;
+        color: var(--text2); opacity: 0.75;
+        word-break: break-all;
     }
 
     footer {
@@ -148,53 +170,46 @@
 <div class="wrap">
 
     <nav class="crumbs" aria-label="面包屑导航">
-        <a href="../">DevKit</a><span class="sep">/</span><span class="here">code</span>
+        <a href="../../">DevKit</a><span class="sep">/</span><a href="../">code</a><span class="sep">/</span><span class="here">A1_V_Φ5</span>
     </nav>
 
-    <h1>代码目录</h1>
-    <p class="sub">按分支组织。每个分支目录下存放该主干的全部版本文件。</p>
+    <h1>A1_V_Φ5</h1>
+    <p class="sub">A1 分支 · Φ5 主干。核心是清掉 Φ4 遗留的缺陷，并补两项工程改造。以下为本主干下的全部版本文件。</p>
+    <p class="sub" style="margin-top:-20px;">更新的主干：<a href="../A1_V_%CE%A67/" style="color:var(--primary);">A1_V_Φ7</a> → <a href="../A1_V_%CE%A68/" style="color:var(--primary);">A1_V_Φ8</a>；更早的：<a href="../A1_V_%CE%A64/" style="color:var(--primary);">A1_V_Φ4</a>。各代并行可选，本代内容保持不变。</p>
 
-    <h2>分支</h2>
+    <h2>版本列表</h2>
 
-    <a class="card" href="A1_V_%CE%A68/">
+    <a class="card" href="deepseek_A1_V_%CE%A65_CN.html">
         <span class="card-top">
-            <span class="card-name">A1_V_Φ8</span>
-            <span class="card-go">进入该分支 →</span>
+            <span class="ver">A1_V_Φ5_CN</span>
+            <span class="card-go">打开 →</span>
         </span>
-        <span class="card-desc">最新主干。核心改动为全站响应式、多比例与触屏适配；九款皮肤（基准 / 毛玻璃 / 霓虹 / 等宽 / 简约 / 材料设计 / 极简 / 高级质感 / Shadcn）同批发布，均带第四层英文标识 Fix（跨风格同步缺陷修补）。</span>
-        <span class="card-count">9 个版本</span>
+        <span class="card-desc">合并前一版遗留的 9 项缺陷，并按既定设计复核追加 4 项修正，合计 13 项：版本兼容校验重写为结构解析式、关闭前提示改用导出指纹、三个 span 控件改为真实 button 补齐键盘可达性、配置导入改为原子化单次提交并校正活动索引、设置字段类型规范化、页签重命名语义固化、拖拽追加去重、模态框支持 Escape 关闭；另回退两处与既定设计冲突的改动。本代尚无皮肤变体，只有基准版。</span>
+        <span class="meta">
+            <span class="chip">2026-09-25</span>
+            <span class="chip">约 241 KB</span>
+            <span class="chip lang">中文版 _CN</span>
+        </span>
+        <span class="filename">deepseek_A1_V_Φ5_CN.html</span>
     </a>
 
-    <a class="card" href="A1_V_%CE%A67/">
+    <a class="card" href="deepseek_A1_V_%CE%A65_Fix_CN.html">
         <span class="card-top">
-            <span class="card-name">A1_V_Φ7</span>
-            <span class="card-go">进入该分支 →</span>
+            <span class="ver">A1_V_Φ5_Fix_CN<span class="latest">本主干最新</span></span>
+            <span class="card-go">打开 →</span>
         </span>
-        <span class="card-desc">上一代主干，与 Φ8 并行可选。四套皮肤：基准 / 毛玻璃 / 霓虹 / 等宽。</span>
-        <span class="card-count">4 个版本</span>
-    </a>
-
-    <a class="card" href="A1_V_%CE%A65/">
-        <span class="card-top">
-            <span class="card-name">A1_V_Φ5</span>
-            <span class="card-go">进入该分支 →</span>
+        <span class="card-desc">两项改动。一、图标字体本地内嵌：此前 41 处图标 span 依赖 Google CDN 的连字字体，外网不通时会把 bolt / keyboard 等图标名直接画成英文单词；现从官方字体剪枝子集化为 4.1 KB woff2 并 base64 内嵌，删除外链、CSP 改为 font-src 'self' data:，至此本文件零外部请求、离线可用。二、规范提示词新增【版本变更强制要求】章节：禁止原地修改、版本号一旦交付即冻结、每次改动须同步更新版权块与三处元数据。</span>
+        <span class="meta">
+            <span class="chip">2026-09-25</span>
+            <span class="chip">约 250 KB</span>
+            <span class="chip lang">中文版 _CN</span>
         </span>
-        <span class="card-desc">早期主干，保留作历史参照。修复 Φ4 遗留的 9 项缺陷并追加 4 项设计复核修正；本代尚无皮肤变体，另含一层缺陷修复（图标字体本地内嵌、规范新增版本变更红线）。</span>
-        <span class="card-count">2 个版本</span>
-    </a>
-
-    <a class="card" href="A1_V_%CE%A64/">
-        <span class="card-top">
-            <span class="card-name">A1_V_Φ4</span>
-            <span class="card-go">进入该分支 →</span>
-        </span>
-        <span class="card-desc">早期主干，保留作历史参照。版本号自循环扩展链回归 Φ 层主干后的一代，全面修复 15 项缺陷。本代尚无皮肤变体。</span>
-        <span class="card-count">1 个版本</span>
+        <span class="filename">deepseek_A1_V_Φ5_Fix_CN.html</span>
     </a>
 
     <footer>
         <span>Copyright (C) 2026-至今 北冥的鱼, DeepSeek · GPLv3</span>
-        <span><a href="../">← 返回站点首页</a></span>
+        <span><a href="../A1_V_%CE%A67/">新一代 A1_V_Φ7 →</a> &nbsp;·&nbsp; <a href="../">← 返回 code 目录</a></span>
     </footer>
 
 </div>
