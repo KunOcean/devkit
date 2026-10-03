@@ -94,7 +94,8 @@ def digest(path: Path) -> str:
     return h.hexdigest()[:CHECKSUM_PREFIX]
 
 
-def build_notes(trunk: str, no_changes: bool = False) -> str:
+def build_notes(trunk: str, mode: str = "changed") -> str:
+    """mode 取 changed / no_changes / manual 三者之一。"""
     trunk_dir = CODE_DIR / trunk
     files = sorted(trunk_dir.glob("deepseek_*.html"))
     entries = collect(trunk)
@@ -108,11 +109,16 @@ def build_notes(trunk: str, no_changes: bool = False) -> str:
 
     lines.append("## 本次更新")
     lines.append("")
-    if no_changes:
+    if mode == "no_changes":
         lines.append(
             f"**无功能更新。** 本次 `main` 的更新未修改任何交付物文件，"
             f"因此附件仍为 `{trunk}` 的同一批文件，与上一次发布完全一致"
             "（可用下方校验和比对）。"
+        )
+    elif mode == "manual":
+        lines.append(
+            f"本 Release 由手动触发补发，为该主干留下一个固定的下载入口。"
+            f"附件是 `{trunk}` 当前的全部版本文件。"
         )
     else:
         lines.append(f"本次更新改动了主干 `{trunk}` 下的交付物文件。")
@@ -127,9 +133,11 @@ def build_notes(trunk: str, no_changes: bool = False) -> str:
 
     lines.append("## 附件")
     lines.append("")
+    # 十进制（÷1000）而非 KiB（÷1024）：导航页手写的大小用的是十进制，
+    # 两处数字必须对得上，否则同一个文件会显示成两个大小。
     for path in files:
-        kb = path.stat().st_size / 1024
-        lines.append(f"- `{path.name}`（{kb:.0f} KB，sha256 `{digest(path)}`）")
+        kb = path.stat().st_size / 1000
+        lines.append(f"- `{path.name}`（约 {kb:.0f} KB，sha256 `{digest(path)}`）")
 
     return "\n".join(lines)
 
@@ -139,18 +147,25 @@ def main() -> int:
         sys.stdout.reconfigure(encoding="utf-8")
 
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    no_changes = "--no-changes" in sys.argv[1:]
+    flags = set(sys.argv[1:])
 
     if len(args) != 1:
-        print("用法：make_release_notes.py <主干名> [--no-changes]", file=sys.stderr)
+        print("用法：make_release_notes.py <主干名> [--no-changes|--manual]", file=sys.stderr)
         return 1
+
+    if "--no-changes" in flags:
+        mode = "no_changes"
+    elif "--manual" in flags:
+        mode = "manual"
+    else:
+        mode = "changed"
 
     trunk = args[0]
     if not (CODE_DIR / trunk).is_dir():
         print(f"找不到目录 code/{trunk}", file=sys.stderr)
         return 1
 
-    print(build_notes(trunk, no_changes))
+    print(build_notes(trunk, mode))
     return 0
 
 
