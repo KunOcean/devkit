@@ -1,0 +1,42 @@
+# main 一更新就自动发布
+#
+# 每次推送到 main 都产生 Release：
+#   · 本次推送改动了哪些主干（code/<主干>/ 下的文件），就给哪些主干各发一个
+#   · 一个主干都没改到（只改了文档或 CI 之类），只给**最新主干**发一个，
+#     说明里写明「无功能更新」，附上同一批文件与校验和供比对
+#   · 标签命名：首个用主干名（如 A1_V_Φ8），之后递增为 A1_V_Φ8.1、A1_V_Φ8.2……
+#
+# 编排逻辑在 .github/scripts/auto_release.py，发布说明在
+# .github/scripts/make_release_notes.py，两个脚本本地都能独立运行。
+#
+# 标签保护提示：若日后给标签加 Rules 规则集，**不要勾「限制创建」**，
+# 否则 Actions 的机器人令牌建不了标签，表现为「推送 main 后没有发布」且
+# 报错不明显。只勾「限制删除」与「阻止强制推送」即可。
+
+name: 自动发布
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+# 串行化：两次推送若同时跑，可能算出同一个下一个标签号，互相覆盖
+concurrency:
+  group: auto-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: 建标签并创建 Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v7
+      - name: 运行发布
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
+        run: python3 .github/scripts/auto_release.py

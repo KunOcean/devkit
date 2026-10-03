@@ -15,18 +15,18 @@
   · 同一个版本号出现多次时，保留说明最长的那一条
   · 跳过「中文版：同步应用主干版本号 …」这类纯语言后缀样板条目 —— 它们不
     携带改动信息，列出来只是噪音
-  · 每条说明截断到 MAX_NOTE_CHARS 字，避免个别超长条目淹没整页
-  · 找不到任何条目时回退为一句固定文案，不让发布因解析失败而中断
+  · 每条说明截断到 MAX_NOTE_CHARS 字
+  · 附件一律列出体积与 sha256 前 12 位，便于跨版本比对「文件是否一致」
 
 用法：
-    python3 .github/scripts/make_release_notes.py <主干名>
-    例：python3 .github/scripts/make_release_notes.py A1_V_Φ8
+    python3 .github/scripts/make_release_notes.py <主干名> [--no-changes]
 
-输出直接打到标准输出，供 gh release create --notes-file 使用。
+--no-changes 表示本次 main 更新没有改动交付物文件，说明里会写明「无功能更新」。
 """
 
 from __future__ import annotations
 
+import hashlib
 import re
 import sys
 from pathlib import Path
@@ -36,6 +36,7 @@ CODE_DIR = ROOT / "code"
 
 MAX_NOTE_CHARS = 240
 BOILERPLATE = "中文版：同步应用主干版本号"
+CHECKSUM_PREFIX = 12
 
 ENTRY_RE = re.compile(
     r"\{\s*version:\s*'((?:[^'\\]|\\.)*)',\s*note:\s*'((?:[^'\\]|\\.)*)'",
@@ -68,7 +69,6 @@ def collect(trunk: str) -> list[tuple[str, str]]:
             elif len(note) > len(best[version]):
                 best[version] = note
 
-    # 按说明内容去重：同一段话只保留最早出现的那一条版本记录
     seen_notes: set[str] = set()
     result: list[tuple[str, str]] = []
     for version in order:
@@ -86,44 +86,71 @@ def truncate(note: str) -> str:
     return note[:MAX_NOTE_CHARS].rstrip() + "……"
 
 
-def main() -> int:
-    if hasattr(sys.stdout, "reconfigure"):
-        sys.stdout.reconfigure(encoding="utf-8")
+def digest(path: Path) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()[:CHECKSUM_PREFIX]
 
-    if len(sys.argv) != 2:
-        print("用法：make_release_notes.py <主干名>", file=sys.stderr)
-        return 1
 
-    trunk = sys.argv[1]
+def build_notes(trunk: str, no_changes: bool = False) -> str:
     trunk_dir = CODE_DIR / trunk
-    if not trunk_dir.is_dir():
-        print(f"找不到目录 code/{trunk}", file=sys.stderr)
-        return 1
-
     files = sorted(trunk_dir.glob("deepseek_*.html"))
     entries = collect(trunk)
 
     lines: list[str] = []
-    lines.append(f"主干 `{trunk}`，本 Release 附带 {len(files)} 个版本文件（每个都是自包含的单文件应用，下载后可直接用浏览器打开）。")
+    lines.append(
+        f"主干 `{trunk}`，本 Release 附带 {len(files)} 个版本文件"
+        "（每个都是自包含的单文件应用，下载后可直接用浏览器打开）。"
+    )
+    lines.append("")
+
+    lines.append("## 本次更新")
+    lines.append("")
+    if no_changes:
+        lines.append(
+            f"**无功能更新。** 本次 `main` 的更新未修改任何交付物文件，"
+            f"因此附件仍为 `{trunk}` 的同一批文件，与上一次发布完全一致"
+            "（可用下方校验和比对）。"
+        )
+    else:
+        lines.append(f"本次更新改动了主干 `{trunk}` 下的交付物文件。")
     lines.append("")
 
     if entries:
-        lines.append("## 本代改动")
+        lines.append(f"## `{trunk}` 的改动历程")
         lines.append("")
         for version, note in entries:
             lines.append(f"- **{version}** — {truncate(note)}")
-        lines.append("")
-    else:
-        lines.append("（未从版本历史中解析到该主干的改动记录。）")
         lines.append("")
 
     lines.append("## 附件")
     lines.append("")
     for path in files:
         kb = path.stat().st_size / 1024
-        lines.append(f"- `{path.name}`（{kb:.0f} KB）")
+        lines.append(f"- `{path.name}`（{kb:.0f} KB，sha256 `{digest(path)}`）")
 
-    print("\n".join(lines))
+    return "\n".join(lines)
+
+
+def main() -> int:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    no_changes = "--no-changes" in sys.argv[1:]
+
+    if len(args) != 1:
+        print("用法：make_release_notes.py <主干名> [--no-changes]", file=sys.stderr)
+        return 1
+
+    trunk = args[0]
+    if not (CODE_DIR / trunk).is_dir():
+        print(f"找不到目录 code/{trunk}", file=sys.stderr)
+        return 1
+
+    print(build_notes(trunk, no_changes))
     return 0
 
 
