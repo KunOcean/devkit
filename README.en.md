@@ -85,6 +85,9 @@ devkit/
 ├── SECURITY.md / SECURITY.en.md    # Security policy (must stay at root for the Security tab)
 ├── LICENSE                          # Full text of the GPLv3 license (must stay at root)
 ├── index.html                       # GitHub Pages landing page (version picker)
+├── .github/                         # PR template, CODEOWNERS, workflows, Dependabot
+│   ├── workflows/                   # version guard, repo checks, release on tag, branch cleanup, PR labels
+│   └── scripts/                     # check scripts called by the workflows; runnable locally
 ├── docs/
 │   ├── .gitkeep                     # Placeholder only (git cannot track empty folders)
 │   ├── branching.md                 # Branching & PR policy (imported by CLAUDE.md via @)

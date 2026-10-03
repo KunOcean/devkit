@@ -1,0 +1,40 @@
+# 清理已合并 PR 遗留的分支
+#
+# GitHub 的「自动删除头部分支」只删同仓分支：来自 fork 的 PR 合并后，
+# head 分支留在 fork 上；而为了让堆叠 PR 能指定 base，feature 分支又在上游
+# 也放了一份。两边都会越积越多，这里定时清理。
+#
+# 只清理本仓库（上游）的分支。fork 上的分支 GITHUB_TOKEN 无权删除——
+# 那需要另配一个有 fork 写权限的令牌，本工作流刻意不碰。
+#
+# 安全跳过规则见 .github/scripts/cleanup_branches.py。
+
+name: 清理已合并分支
+
+on:
+  schedule:
+    # 每周一 03:00 UTC
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: '只打印将删除的分支，不实际删除'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  cleanup:
+    name: 删除已合并 PR 的分支
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+      - name: 运行清理
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run == true && '1' || '' }}
+        run: python3 .github/scripts/cleanup_branches.py

@@ -1,0 +1,54 @@
+# 仓库体检
+#
+# 三个互不依赖的检查合在一个工作流里，各自是独立 job、并行执行，
+# 失败时能一眼看出是哪一类问题：
+#   · 相对链接   link_check.py  —— HTML/Markdown 里的链接是否指向存在的文件
+#   · 文件体积   size_guard.py  —— 单文件是否异常膨胀
+#   · 运行时冒烟 smoke_test.py  —— 无头浏览器打开每个版本文件，控制台无报错
+#
+# 与 version-guard 一样默认只报告、不拦截。
+# 每个脚本本地都能用同一条命令运行。
+
+name: 仓库体检
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repo-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  link-check:
+    name: 相对链接
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+      - name: 运行链接检查
+        run: python3 .github/scripts/link_check.py
+
+  size-guard:
+    name: 文件体积
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+      - name: 运行体积检查
+        run: python3 .github/scripts/size_guard.py
+
+  smoke-test:
+    name: 运行时冒烟
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+      - name: 运行冒烟测试
+        run: python3 .github/scripts/smoke_test.py

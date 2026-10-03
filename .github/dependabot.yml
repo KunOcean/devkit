@@ -1,0 +1,18 @@
+# Dependabot 配置
+#
+# 只跟踪 GitHub Actions 的版本升级。本项目不依赖任何 npm / pip 包，交付物是
+# 自包含的 HTML 单文件（唯一的运行时外部资源是 Google Fonts，由浏览器直接
+# 加载，不经过包管理器），因此没有其他生态需要监控。
+#
+# 作用：actions/checkout 之类的版本过旧时，Dependabot 会自动提 PR。
+# 这些 PR 同样受分支规则约束，需要仓库主批准后才合并。
+
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
