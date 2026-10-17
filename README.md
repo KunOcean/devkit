@@ -97,34 +97,49 @@ devkit/                              # 仓库根（GitHub Pages 发布目录）
 │   └── github-settings.md           # GitHub 仓库设置手册（分支保护、Actions 等网页端配置）
 ├── projects/                        # 各项目各占一个目录，目录内自带落地页
 │   ├── index.html                   # /projects/ 目录索引
-│   └── devkit/                      # 项目：AI 开发快捷工具箱
-│       ├── index.html               # 项目落地页（版本选择台 + 下载直达）
+│   ├── devkit/                      # 项目：AI 开发快捷工具箱
+│   │   ├── index.html               # 项目落地页（版本选择台 + 下载直达）
+│   │   └── code/
+│   │       ├── index.html                   # 分支目录索引
+│   │       ├── A1_V_Φ8/                     # 当前主干
+│   │       │   ├── index.html                              # 本分支版本列表
+│   │       │   ├── deepseek_A1_V_Φ8_Clean_Fix_CN.html      # 简约
+│   │       │   ├── deepseek_A1_V_Φ8_Material_Fix_CN.html   # 材料设计（MD3）
+│   │       │   ├── deepseek_A1_V_Φ8_Minimal_Fix_CN.html    # 极简
+│   │       │   ├── deepseek_A1_V_Φ8_Premium_Fix_CN.html    # 高级质感
+│   │       │   ├── deepseek_A1_V_Φ8_Shadcn_Fix_CN.html     # Shadcn
+│   │       │   ├── deepseek_A1_V_Φ8_Mono_Fix_CN.html       # 全等宽 + 双轴主题
+│   │       │   ├── deepseek_A1_V_Φ8_Neon_Fix_CN.html       # 电光霓虹
+│   │       │   ├── deepseek_A1_V_Φ8_Glass_Fix_CN.html      # 毛玻璃
+│   │       │   └── deepseek_A1_V_Φ8_Fix_CN.html            # 基准皮肤
+│   │       ├── A1_V_Φ7/                     # 上一代主干（与 Φ8 并行可选）
+│   │       │   ├── index.html
+│   │       │   ├── deepseek_A1_V_Φ7_Mono_CN.html
+│   │       │   ├── deepseek_A1_V_Φ7_Neon_CN.html
+│   │       │   ├── deepseek_A1_V_Φ7_Glass_CN.html
+│   │       │   └── deepseek_A1_V_Φ7_CN.html
+│   │       ├── A1_V_Φ5/                     # 早期主干（历史参照）
+│   │       │   ├── index.html
+│   │       │   ├── deepseek_A1_V_Φ5_Fix_CN.html          # 图标字体本地内嵌 + 规范新增版本红线
+│   │       │   └── deepseek_A1_V_Φ5_CN.html              # 修复 Φ4 遗留 9 项 + 追加 4 项复核修正
+│   │       └── A1_V_Φ4/                     # 早期主干（历史参照）
+│   │           ├── index.html
+│   │           └── deepseek_A1_V_Φ4_CN.html              # 全面修复 15 项缺陷
+│   ├── submerge-pro/                # 项目：双语字幕翻译拆分工具
+│   │   ├── index.html
+│   │   └── code/
+│   │       ├── index.html
+│   │       └── A1_II_Φ10/
+│   │           ├── index.html
+│   │           ├── deepseek_html_20260705_d1ca99.html     # 原始归档
+│   │           └── deepseek_html_20261006_d1ca99_Fix.html # 文件名安全渲染修复
+│   └── dircleaner/                  # 项目：自动清空指定目录工具
+│       ├── index.html
 │       └── code/
-│           ├── index.html                   # 分支目录索引
-│           ├── A1_V_Φ8/                     # 当前主干
-│           │   ├── index.html                              # 本分支版本列表
-│           │   ├── deepseek_A1_V_Φ8_Clean_Fix_CN.html      # 简约
-│           │   ├── deepseek_A1_V_Φ8_Material_Fix_CN.html   # 材料设计（MD3）
-│           │   ├── deepseek_A1_V_Φ8_Minimal_Fix_CN.html    # 极简
-│           │   ├── deepseek_A1_V_Φ8_Premium_Fix_CN.html    # 高级质感
-│           │   ├── deepseek_A1_V_Φ8_Shadcn_Fix_CN.html     # Shadcn
-│           │   ├── deepseek_A1_V_Φ8_Mono_Fix_CN.html       # 全等宽 + 双轴主题
-│           │   ├── deepseek_A1_V_Φ8_Neon_Fix_CN.html       # 电光霓虹
-│           │   ├── deepseek_A1_V_Φ8_Glass_Fix_CN.html      # 毛玻璃
-│           │   └── deepseek_A1_V_Φ8_Fix_CN.html            # 基准皮肤
-│           ├── A1_V_Φ7/                     # 上一代主干（与 Φ8 并行可选）
-│           │   ├── index.html
-│           │   ├── deepseek_A1_V_Φ7_Mono_CN.html
-│           │   ├── deepseek_A1_V_Φ7_Neon_CN.html
-│           │   ├── deepseek_A1_V_Φ7_Glass_CN.html
-│           │   └── deepseek_A1_V_Φ7_CN.html
-│           ├── A1_V_Φ5/                     # 早期主干（历史参照）
-│           │   ├── index.html
-│           │   ├── deepseek_A1_V_Φ5_Fix_CN.html          # 图标字体本地内嵌 + 规范新增版本红线
-│           │   └── deepseek_A1_V_Φ5_CN.html              # 修复 Φ4 遗留 9 项 + 追加 4 项复核修正
-│           └── A1_V_Φ4/                     # 早期主干（历史参照）
+│           ├── index.html
+│           └── A1_II_Φ8/
 │               ├── index.html
-│               └── deepseek_A1_V_Φ4_CN.html              # 全面修复 15 项缺陷
+│               └── deepseek_html_20261005_ada08c.html
 └── .claude/skills/devkit-spec/      # Claude Code 技能（版本与协作规范 + 版本相关模板）
 ```
 
@@ -137,7 +152,7 @@ devkit/                              # 仓库根（GitHub Pages 发布目录）
 - 每个项目自带一个 `index.html` 作为该项目落地页；项目内部的目录结构与版本号规则**由该项目自定**，仓库不为它们设统一规范。
 - 仓库根 `index.html` 是**项目选择台**，只负责列出全部项目入口。
 - `docs/`（协作约定）与 `.github/`（自动化）是**跨项目通用**的；其中 `version_guard.py`、`size_guard.py`、`smoke_test.py`、`auto_release.py` 等脚本目前**只作用于 DevKit**，路径常量写死指向 `projects/devkit/code/`。新增项目若要复用这些检查，需相应改造。
-- 当前只有一个项目 `devkit`；未来的项目放 `projects/<名称>/` 即可，无需改动 DevKit 的结构。
+- 当前托管 `devkit`、`submerge-pro` 与 `dircleaner` 三个项目；新增项目放入 `projects/<名称>/`，并更新根目录项目选择台和 `projects/index.html`。
 
 ### Pages 部署说明
 
@@ -153,6 +168,12 @@ devkit/                              # 仓库根（GitHub Pages 发布目录）
 | `/projects/devkit/code/A1_V_Φ7/` | 上一代主干的版本列表（四套皮肤，与 Φ8 并行可选） |
 | `/projects/devkit/code/A1_V_Φ5/` | 早期主干（两个版本，历史参照） |
 | `/projects/devkit/code/A1_V_Φ4/` | 早期主干（一个版本，历史参照） |
+| `/projects/submerge-pro/` | SubMerge Pro 项目页 |
+| `/projects/submerge-pro/code/` | SubMerge Pro 代码分支索引 |
+| `/projects/submerge-pro/code/A1_II_Φ10/` | 原始归档与 A1_II_Φ10_Fix 安全修订版 |
+| `/projects/dircleaner/` | DirCleaner 项目页 |
+| `/projects/dircleaner/code/` | DirCleaner 代码分支索引 |
+| `/projects/dircleaner/code/A1_II_Φ8/` | A1_II_Φ8 应用文件 |
 
 Pages 之外还有一个**下载入口**：仓库的 Releases 页（`/releases`）由 `.github/workflows/release-on-main.yml` 自动维护——每次 `main` 更新就按主干打一个包，附上该代全部交付物。想拿文件下载走这里最省事，想在线阅读走 Pages。
 

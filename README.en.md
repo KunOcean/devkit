@@ -97,34 +97,49 @@ devkit/                              # Repo root (GitHub Pages publish folder)
 │   └── github-settings.md           # GitHub repo settings manual (branch protection, Actions)
 ├── projects/                        # One directory per project, each with its own landing page
 │   ├── index.html                   # Index for /projects/
-│   └── devkit/                      # Project: AI 开发快捷工具箱
-│       ├── index.html               # Project landing page (version picker + download shortcut)
+│   ├── devkit/                      # Project: AI 开发快捷工具箱
+│   │   ├── index.html               # Project landing page (version picker + download shortcut)
+│   │   └── code/
+│   │       ├── index.html                   # Index for the branch directory
+│   │       ├── A1_V_Φ8/                     # Current main line
+│   │       │   ├── index.html                              # Version list for this branch
+│   │       │   ├── deepseek_A1_V_Φ8_Clean_Fix_CN.html      # Clean
+│   │       │   ├── deepseek_A1_V_Φ8_Material_Fix_CN.html   # Material Design (MD3)
+│   │       │   ├── deepseek_A1_V_Φ8_Minimal_Fix_CN.html    # Minimal
+│   │       │   ├── deepseek_A1_V_Φ8_Premium_Fix_CN.html    # Premium
+│   │       │   ├── deepseek_A1_V_Φ8_Shadcn_Fix_CN.html     # Shadcn
+│   │       │   ├── deepseek_A1_V_Φ8_Mono_Fix_CN.html       # Monospace + two-axis themes
+│   │       │   ├── deepseek_A1_V_Φ8_Neon_Fix_CN.html       # Electric neon
+│   │       │   ├── deepseek_A1_V_Φ8_Glass_Fix_CN.html      # Glassmorphism
+│   │       │   └── deepseek_A1_V_Φ8_Fix_CN.html            # Baseline skin
+│   │       ├── A1_V_Φ7/                     # Previous main line (parallel with Φ8)
+│   │       │   ├── index.html
+│   │       │   ├── deepseek_A1_V_Φ7_Mono_CN.html
+│   │       │   ├── deepseek_A1_V_Φ7_Neon_CN.html
+│   │       │   ├── deepseek_A1_V_Φ7_Glass_CN.html
+│   │       │   └── deepseek_A1_V_Φ7_CN.html
+│   │       ├── A1_V_Φ5/                     # Early main line (historical reference)
+│   │       │   ├── index.html
+│   │       │   ├── deepseek_A1_V_Φ5_Fix_CN.html          # Icon font embedded locally + spec red lines
+│   │       │   └── deepseek_A1_V_Φ5_CN.html              # Fixes 9 inherited defects + 4 review amendments
+│   │       └── A1_V_Φ4/                     # Early main line (historical reference)
+│   │           ├── index.html
+│   │           └── deepseek_A1_V_Φ4_CN.html              # Fixes 15 defects
+│   ├── submerge-pro/                # Project: bilingual subtitle translation/splitting
+│   │   ├── index.html
+│   │   └── code/
+│   │       ├── index.html
+│   │       └── A1_II_Φ10/
+│   │           ├── index.html
+│   │           ├── deepseek_html_20260705_d1ca99.html     # Original archive
+│   │           └── deepseek_html_20261006_d1ca99_Fix.html # Safe filename rendering fix
+│   └── dircleaner/                  # Project: empty a user-selected directory
+│       ├── index.html
 │       └── code/
-│           ├── index.html                   # Index for the branch directory
-│           ├── A1_V_Φ8/                     # Current main line
-│           │   ├── index.html                              # Version list for this branch
-│           │   ├── deepseek_A1_V_Φ8_Clean_Fix_CN.html      # Clean
-│           │   ├── deepseek_A1_V_Φ8_Material_Fix_CN.html   # Material Design (MD3)
-│           │   ├── deepseek_A1_V_Φ8_Minimal_Fix_CN.html    # Minimal
-│           │   ├── deepseek_A1_V_Φ8_Premium_Fix_CN.html    # Premium
-│           │   ├── deepseek_A1_V_Φ8_Shadcn_Fix_CN.html     # Shadcn
-│           │   ├── deepseek_A1_V_Φ8_Mono_Fix_CN.html       # Monospace + two-axis themes
-│           │   ├── deepseek_A1_V_Φ8_Neon_Fix_CN.html       # Electric neon
-│           │   ├── deepseek_A1_V_Φ8_Glass_Fix_CN.html      # Glassmorphism
-│           │   └── deepseek_A1_V_Φ8_Fix_CN.html            # Baseline skin
-│           ├── A1_V_Φ7/                     # Previous main line (parallel with Φ8)
-│           │   ├── index.html
-│           │   ├── deepseek_A1_V_Φ7_Mono_CN.html
-│           │   ├── deepseek_A1_V_Φ7_Neon_CN.html
-│           │   ├── deepseek_A1_V_Φ7_Glass_CN.html
-│           │   └── deepseek_A1_V_Φ7_CN.html
-│           ├── A1_V_Φ5/                     # Early main line (historical reference)
-│           │   ├── index.html
-│           │   ├── deepseek_A1_V_Φ5_Fix_CN.html          # Icon font embedded locally + spec red lines
-│           │   └── deepseek_A1_V_Φ5_CN.html              # Fixes 9 inherited defects + 4 review amendments
-│           └── A1_V_Φ4/                     # Early main line (historical reference)
+│           ├── index.html
+│           └── A1_II_Φ8/
 │               ├── index.html
-│               └── deepseek_A1_V_Φ4_CN.html              # Fixes 15 defects
+│               └── deepseek_html_20261005_ada08c.html
 └── .claude/skills/devkit-spec/      # Claude Code skill (version & collaboration spec + version templates)
 ```
 
@@ -137,7 +152,7 @@ This repository is organised as `projects/<name>/`, one directory per project:
 - Each project ships its own `index.html` as its landing page. The internal directory structure and version-numbering rules are **up to each project** — the repo imposes no shared convention on them.
 - The root `index.html` is a **project picker**; it only lists entries to the projects.
 - `docs/` (conventions) and `.github/` (automation) are **shared across projects**. Note that `version_guard.py`, `size_guard.py`, `smoke_test.py` and `auto_release.py` currently **apply to DevKit only** — their path constants are hard-wired to `projects/devkit/code/`. A new project that wants the same checks needs those scripts adapted.
-- Only one project (`devkit`) exists today; future projects just go under `projects/<name>/` with no change to DevKit's structure.
+- The repository currently hosts three projects: `devkit`, `submerge-pro` and `dircleaner`. Add future projects under `projects/<name>/` and update the root project picker and `projects/index.html`.
 
 ### Pages deployment note
 
@@ -153,6 +168,12 @@ The site entry is the **root-level** `index.html`, a **project picker**; each pr
 | `/projects/devkit/code/A1_V_Φ7/` | Version list for the previous main line (four skins, parallel with Φ8) |
 | `/projects/devkit/code/A1_V_Φ5/` | Early main line (two versions, historical reference) |
 | `/projects/devkit/code/A1_V_Φ4/` | Early main line (one version, historical reference) |
+| `/projects/submerge-pro/` | SubMerge Pro project page |
+| `/projects/submerge-pro/code/` | SubMerge Pro branch index |
+| `/projects/submerge-pro/code/A1_II_Φ10/` | Original archive and A1_II_Φ10_Fix security revision |
+| `/projects/dircleaner/` | DirCleaner project page |
+| `/projects/dircleaner/code/` | DirCleaner branch index |
+| `/projects/dircleaner/code/A1_II_Φ8/` | A1_II_Φ8 application file |
 
 Beyond Pages there is a **download entry point**: the repository's Releases page (`/releases`), maintained automatically by `.github/workflows/release-on-main.yml` — every update to `main` packages that main line's artifacts and attaches them. Downloading is easiest there; reading online is what Pages is for.
 

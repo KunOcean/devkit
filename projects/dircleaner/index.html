@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DirCleaner · 目录清空工具</title>
+<meta name="description" content="DirCleaner 浏览器端目录清空工具的版本入口。">
+<!--
+    ============================================================
+    项目名称：DirCleaner · 项目落地页
+    文件性质：GitHub Pages 页面，不属于应用版本架构，不占用版本号。
+    职责：说明项目并列出可浏览版本。
+    日期：2026-10-06
+    版权：Copyright (C) 2026-至今  北冥的鱼, DeepSeek
+    许可证：GPLv3
+    ============================================================
+-->
+<style>
+    *, *::before, *::after { box-sizing: border-box; }
+    :root {
+        color-scheme: dark;
+        --bg: #08090d;
+        --surface: rgba(10, 12, 17, 0.92);
+        --text: #e9f2ec;
+        --muted: #8b9aa6;
+        --accent: #bbf351;
+        --edge: rgba(187, 243, 81, 0.28);
+        --warning: #ffd58a;
+    }
+    body {
+        min-height: 100vh;
+        margin: 0;
+        padding: 48px 20px;
+        color: var(--text);
+        background: radial-gradient(900px 600px at 10% 0%, rgba(187,243,81,.09), transparent 60%), var(--bg);
+        font: 16px/1.65 'Segoe UI', system-ui, -apple-system, 'Microsoft YaHei', sans-serif;
+    }
+    main { width: min(100%, 820px); margin: auto; }
+    nav { color: var(--muted); font-size: .85rem; margin-bottom: 28px; }
+    a { color: var(--accent); }
+    nav a { color: var(--muted); text-decoration: none; }
+    nav a:hover, nav a:focus-visible { color: var(--accent); }
+    h1 { margin: 0; color: var(--accent); font-size: clamp(2rem, 6vw, 3.2rem); }
+    .eyebrow { color: var(--muted); letter-spacing: .12em; text-transform: uppercase; font-size: .75rem; }
+    .lede { color: var(--muted); margin: 8px 0 28px; }
+    .card, .warning {
+        padding: 20px 22px;
+        border: 1px solid var(--edge);
+        border-radius: 12px;
+        background: var(--surface);
+        box-shadow: 0 0 26px -16px rgba(187,243,81,.8);
+    }
+    .card h2 { margin: 0 0 6px; font-size: 1.1rem; }
+    .card p { color: var(--muted); margin: 0 0 14px; }
+    .button {
+        display: inline-block;
+        padding: 8px 14px;
+        border-radius: 7px;
+        background: var(--accent);
+        color: #10140a;
+        font-weight: 650;
+        text-decoration: none;
+    }
+    .button:focus-visible { outline: 2px solid white; outline-offset: 3px; }
+    .warning { margin: 16px 0 0; border-color: rgba(255, 213, 138, .42); color: var(--warning); }
+    footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid rgba(187,243,81,.16); color: var(--muted); font-size: .78rem; text-align: center; }
+    @media (max-width: 560px) { body { padding: 32px 16px; } .card, .warning { padding: 17px; } }
+</style>
+</head>
+<body>
+<main>
+    <nav aria-label="面包屑导航"><a href="../">projects</a> / <span>dircleaner</span></nav>
+    <header>
+        <p class="eyebrow">Local browser utility</p>
+        <h1>DirCleaner</h1>
+        <p class="lede">浏览器端目录清空工具。用户选择目标目录并完成确认后，工具会递归删除该目录中的内容。</p>
+    </header>
+
+    <section class="card" aria-labelledby="versions-title">
+        <h2 id="versions-title">版本入口</h2>
+        <p>A1_II_Φ8 · 关键目录阻止、白名单、可执行文件二次确认与操作统计。</p>
+        <a class="button" href="code/">浏览版本分支 →</a>
+    </section>
+
+    <aside class="warning" role="note">
+        <strong>不可逆操作提示：</strong>本工具会删除用户明确选择目录中的文件和子目录。请先确认目标路径并备份重要数据；白名单和关键目录检查不能代替备份。
+    </aside>
+
+    <footer>
+        DirCleaner  Copyright (C) 2026-至今 北冥的鱼, DeepSeek · GPLv3<br>
+        本程序是自由软件，基于 GPLv3 发布，无任何担保。
+    </footer>
+</main>
+</body>
+</html>
