@@ -1078,7 +1078,7 @@
         </div>
         <div class="title-actions">
             <button class="icon-btn" id="togglePerformanceMode" aria-label="性能模式"><span class="material-symbols-outlined">bolt</span><span class="btn-text">性能模式</span></button>
-            <button class="icon-btn toggle-active" id="toggleShortcuts" aria-label="快捷键"><span class="material-symbols-outlined">keyboard</span><span class="btn-text">快捷键</span></button>
+            <button class="icon-btn toggle-active" id="toggleShortcuts" aria-label="快捷键" aria-expanded="false" aria-haspopup="true"><span class="material-symbols-outlined">keyboard</span><span class="btn-text">快捷键</span></button>
             <div class="shortcut-hint-menu" id="shortcutHintMenu" style="display: none;">
                 <p><kbd>Esc</kbd> 关闭当前弹窗</p>
                 <button class="icon-btn" id="toggleShortcutsInside" style="width:100%; justify-content:center;"><span class="material-symbols-outlined">keyboard</span> <span class="btn-text">快捷键已启用</span></button>
@@ -4130,7 +4130,16 @@ graph LR
                 };
                 document.getElementById('brandBtn').addEventListener('click', () => modalMgr.open('copyrightModal'));
                 clickOnKey(document.getElementById('brandBtn'), () => modalMgr.open('copyrightModal'));
-                clickOnKey(document.getElementById('versionHistoryBtn'), () => App.showVersionHistory());
+                // 回归修复：版本说明位于 .brand 内部，而 .brand 同样是 role=button
+                // 的按键入口。Enter 的 keydown 会冒泡到 brandBtn 的处理器，导致
+                // 版权弹窗与版本说明弹窗同时打开。这里单独接管并阻止冒泡。
+                document.getElementById('versionHistoryBtn').addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        App.showVersionHistory();
+                    }
+                });
                 document.getElementById('closeModal').addEventListener('click', () => modalMgr.close('copyrightModal'));
                 document.getElementById('versionHistoryBtn').addEventListener('click', (e) => { e.stopPropagation(); App.showVersionHistory(); });
                 document.getElementById('closeVersionHistoryModal').addEventListener('click', () => modalMgr.close('versionHistoryModal'));
@@ -4483,6 +4492,19 @@ graph LR
                         if (name && name.trim()) projectSvc.add(name.trim());
                     }
                 };
+                // C1 补充：项目页签与关闭 × 已设 role=button / tabindex=0，
+                // 但此前只有 onclick，聚焦后按 Enter 没有任何反应。
+                projectBar.onkeydown = (e) => {
+                    if (e.key !== 'Enter' && e.key !== ' ') return;
+                    const projectTab = e.target.closest('.project-tab');
+                    if (!projectTab) return;
+                    e.preventDefault();
+                    if (e.target.classList.contains('close-project')) {
+                        projectSvc.close(projectTab.dataset.projectId);
+                    } else {
+                        projectSvc.switchTo(projectTab.dataset.projectId);
+                    }
+                };
             },
 
             // ========== handleCopyFinal ==========
@@ -4661,6 +4683,10 @@ graph LR
                         div.className = 'rn-file-item' + (index === selectedIndex ? ' active' : '');
                         div.dataset.index = index;
                         div.textContent = entry.name;
+                        // C1 补充：列表项此前无法聚焦，键盘用户进不到这个列表
+                        div.tabIndex = 0;
+                        div.setAttribute('role', 'button');
+                        div.setAttribute('aria-pressed', String(index === selectedIndex));
                         fileListDiv.appendChild(div);
                     });
                     if (fileEntries.length > 0 && selectedIndex === -1) {
@@ -4671,18 +4697,29 @@ graph LR
                     renameBtn.disabled = fileEntries.length === 0;
                 };
 
-                fileListDiv.addEventListener('click', (e) => {
-                    const item = e.target.closest('.rn-file-item');
+                // C1 补充：选中逻辑抽成函数，click 与 keydown 共用
+                const selectRenameItem = (item) => {
                     if (!item) return;
                     const index = parseInt(item.dataset.index);
                     if (index === selectedIndex) return;
                     if (selectedIndex !== -1) {
                         const prev = fileListDiv.querySelector('.rn-file-item.active');
-                        if (prev) prev.classList.remove('active');
+                        if (prev) { prev.classList.remove('active'); prev.setAttribute('aria-pressed', 'false'); }
                     }
                     selectedIndex = index;
                     renameBtn.disabled = false;
                     item.classList.add('active');
+                    item.setAttribute('aria-pressed', 'true');
+                };
+                fileListDiv.addEventListener('click', (e) => {
+                    selectRenameItem(e.target.closest('.rn-file-item'));
+                });
+                fileListDiv.addEventListener('keydown', (e) => {
+                    if (e.key !== 'Enter' && e.key !== ' ') return;
+                    const item = e.target.closest('.rn-file-item');
+                    if (!item) return;
+                    e.preventDefault();
+                    selectRenameItem(item);
                 });
 
                 // 拖拽导入：追加 + 按文件名去重（M3 修复）
