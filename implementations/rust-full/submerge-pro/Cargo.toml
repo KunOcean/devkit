@@ -1,0 +1,12 @@
+[package]
+name = "submerge-full"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "submerge-full"
+path = "src/main.rs"
+
+[dependencies]
+eframe = "0.29"
+rfd = "0.15"

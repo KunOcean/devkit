@@ -251,24 +251,43 @@ jobs:
           }
           if ($fail.Count -gt 0) { Write-Error "Python 构建失败：$($fail -join ', ')"; exit 1 }
 
-      - name: 构建 TypeScript（core + full）
+      - name: 安装 Bun（用于 TypeScript 打包为 EXE）
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: 构建 TypeScript（core + full，全部项目）
         shell: pwsh
         run: |
-          # Node 无原生 EXE 打包（SEA 需额外注入 blob），当前交付 .js 源码。
-          # 这里只做语法检查，确保产物可运行；真正的 EXE 打包留待后续迭代。
+          # 用 Bun 的 --compile 产出独立 EXE：
+          #   bun build --compile foo.js --outfile foo.exe
+          # 相比 Node SEA（需手工注入 blob、分平台下载 base binary），
+          # bun compile 一条命令即可，且产物体积约 50-60MB。
+          # 本地无需安装 Bun，全部在 CI 完成。
           $fail = @()
           Get-ChildItem implementations -Directory -Filter "typescript-*" | ForEach-Object {
+            $layer = $_.Name
             Get-ChildItem $_.FullName -Directory | ForEach-Object {
               $dir = $_.FullName
-              Get-ChildItem $dir -Filter "*.js" -ErrorAction SilentlyContinue | ForEach-Object {
-                Write-Host "::group::node --check $($_.FullName)"
-                node --check $_.FullName
-                if ($LASTEXITCODE -ne 0) { $fail += $_.FullName }
+              $proj = $_.Name
+              $jsFiles = Get-ChildItem $dir -Filter "*.js" -ErrorAction SilentlyContinue
+              if (-not $jsFiles) { return }
+
+              foreach ($js in $jsFiles) {
+                Write-Host "::group::bun build --compile $($js.FullName)"
+                Push-Location $dir
+
+                # 与收集规则一致的产物名：core → <项目>.exe；full → <项目>-gui.exe
+                $outName = if ($layer -eq "typescript-full") { "$proj-gui.exe" } else { "$proj.exe" }
+                bun build --compile $js.Name --outfile $outName
+                if ($LASTEXITCODE -ne 0) { $fail += $js.FullName }
+
+                Pop-Location
                 Write-Host "::endgroup::"
               }
             }
           }
-          if ($fail.Count -gt 0) { Write-Error "TypeScript 语法检查失败：$($fail -join ', ')"; exit 1 }
+          if ($fail.Count -gt 0) { Write-Error "TypeScript 构建失败：$($fail -join ', ')"; exit 1 }
 
       # ---------- 汇总产物 ----------
       - name: 收集产物
@@ -289,6 +308,8 @@ jobs:
             "csharp-full" = @{ Proj = "publish";         Suffix = "-gui" }
             "python-core" = @{ Proj = "dist";            Suffix = "" }
             "python-full" = @{ Proj = "dist";            Suffix = "-gui" }
+            "typescript-core" = @{ Proj = "";            Suffix = "" }
+            "typescript-full" = @{ Proj = "";            Suffix = "-gui" }
           }
 
           $count = 0
@@ -305,22 +326,33 @@ jobs:
               $expected++
 
               # 精确匹配目标文件名，不再用「取体积最大的 exe」这种脆弱启发式：
-              #   core 层（suffix 为空）期望 <项目>.exe，必须显式排除 *-gui.exe，
-              #   否则同目录若残留 full 层产物会误取
-              #   full 层期望 <项目>-gui.exe
-              $wantName = "${proj}${suffix}.exe"
-              $exe = Get-ChildItem $searchDir -Filter "*.exe" -ErrorAction SilentlyContinue |
-                     Where-Object { $_.Name -eq $wantName } |
-                     Select-Object -First 1
+              #   core 层（suffix 为空）期望 <项目>.exe，必须显式排除 *-gui.exe
+              #     与 *-full.exe，否则同目录若残留 full 层产物会误取
+              #   full 层期望 <项目>-gui.exe，但 Rust 的产物名由 Cargo.toml 的
+              #     [[bin]] 决定，实际叫 <项目>-full.exe；两种都认，full 语义
+              #     比 gui 更准，所以优先 -full，再退到 -gui
+              $coreExcl = "*-gui.exe", "*-full.exe"
+              $wantNames = if ($suffix -eq "") {
+                @("${proj}.exe")
+              } else {
+                @("${proj}-full.exe", "${proj}-gui.exe")
+              }
+              $exe = $null
+              foreach ($want in $wantNames) {
+                $exe = Get-ChildItem $searchDir -Filter "*.exe" -ErrorAction SilentlyContinue |
+                       Where-Object { $_.Name -eq $want } |
+                       Select-Object -First 1
+                if ($exe) { break }
+              }
 
               if (-not $exe -and $suffix -eq "") {
-                # 兜底：名字不完全一致时取任意非 -gui 的 exe（例如 Rust 的
-                # cargo 产物名由 Cargo.toml 的 [[bin]] 决定，可能不等于目录名）
+                # 兜底：cargo 的 bin 名可能不等于目录名，取任意非 full 层 exe
                 $exe = Get-ChildItem $searchDir -Filter "*.exe" -ErrorAction SilentlyContinue |
-                       Where-Object { $_.Name -notlike "*-gui.exe" } |
+                       Where-Object { $n = $_.Name; -not ($coreExcl | Where-Object { $n -like $_ }) } |
                        Sort-Object LastWriteTime -Descending | Select-Object -First 1
               } elseif (-not $exe -and $suffix -eq "-gui") {
-                $exe = Get-ChildItem $searchDir -Filter "*-gui.exe" -ErrorAction SilentlyContinue |
+                $exe = Get-ChildItem $searchDir -Filter "*.exe" -ErrorAction SilentlyContinue |
+                       Where-Object { $_.Name -like "*-gui.exe" -or $_.Name -like "*-full.exe" } |
                        Sort-Object LastWriteTime -Descending | Select-Object -First 1
               }
 
@@ -330,7 +362,7 @@ jobs:
                 Write-Host "收集: $dst ← $($exe.FullName)"
                 $count++
               } else {
-                Write-Host "::warning::未找到 $layer/$proj 的产物（期望 $wantName，目录 $searchDir）"
+                Write-Host "::warning::未找到 $layer/$proj 的产物（期望 $($wantNames -join ' 或 ')，目录 $searchDir）"
                 $missing += "$layer/$proj"
               }
             }
