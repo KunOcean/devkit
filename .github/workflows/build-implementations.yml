@@ -251,24 +251,43 @@ jobs:
           }
           if ($fail.Count -gt 0) { Write-Error "Python 构建失败：$($fail -join ', ')"; exit 1 }
 
-      - name: 构建 TypeScript（core + full）
+      - name: 安装 Bun（用于 TypeScript 打包为 EXE）
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: 构建 TypeScript（core + full，全部项目）
         shell: pwsh
         run: |
-          # Node 无原生 EXE 打包（SEA 需额外注入 blob），当前交付 .js 源码。
-          # 这里只做语法检查，确保产物可运行；真正的 EXE 打包留待后续迭代。
+          # 用 Bun 的 --compile 产出独立 EXE：
+          #   bun build --compile foo.js --outfile foo.exe
+          # 相比 Node SEA（需手工注入 blob、分平台下载 base binary），
+          # bun compile 一条命令即可，且产物体积约 50-60MB。
+          # 本地无需安装 Bun，全部在 CI 完成。
           $fail = @()
           Get-ChildItem implementations -Directory -Filter "typescript-*" | ForEach-Object {
+            $layer = $_.Name
             Get-ChildItem $_.FullName -Directory | ForEach-Object {
               $dir = $_.FullName
-              Get-ChildItem $dir -Filter "*.js" -ErrorAction SilentlyContinue | ForEach-Object {
-                Write-Host "::group::node --check $($_.FullName)"
-                node --check $_.FullName
-                if ($LASTEXITCODE -ne 0) { $fail += $_.FullName }
+              $proj = $_.Name
+              $jsFiles = Get-ChildItem $dir -Filter "*.js" -ErrorAction SilentlyContinue
+              if (-not $jsFiles) { return }
+
+              foreach ($js in $jsFiles) {
+                Write-Host "::group::bun build --compile $($js.FullName)"
+                Push-Location $dir
+
+                # 与收集规则一致的产物名：core → <项目>.exe；full → <项目>-gui.exe
+                $outName = if ($layer -eq "typescript-full") { "$proj-gui.exe" } else { "$proj.exe" }
+                bun build --compile $js.Name --outfile $outName
+                if ($LASTEXITCODE -ne 0) { $fail += $js.FullName }
+
+                Pop-Location
                 Write-Host "::endgroup::"
               }
             }
           }
-          if ($fail.Count -gt 0) { Write-Error "TypeScript 语法检查失败：$($fail -join ', ')"; exit 1 }
+          if ($fail.Count -gt 0) { Write-Error "TypeScript 构建失败：$($fail -join ', ')"; exit 1 }
 
       # ---------- 汇总产物 ----------
       - name: 收集产物
@@ -289,6 +308,8 @@ jobs:
             "csharp-full" = @{ Proj = "publish";         Suffix = "-gui" }
             "python-core" = @{ Proj = "dist";            Suffix = "" }
             "python-full" = @{ Proj = "dist";            Suffix = "-gui" }
+            "typescript-core" = @{ Proj = "";            Suffix = "" }
+            "typescript-full" = @{ Proj = "";            Suffix = "-gui" }
           }
 
           $count = 0
