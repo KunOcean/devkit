@@ -305,22 +305,33 @@ jobs:
               $expected++
 
               # 精确匹配目标文件名，不再用「取体积最大的 exe」这种脆弱启发式：
-              #   core 层（suffix 为空）期望 <项目>.exe，必须显式排除 *-gui.exe，
-              #   否则同目录若残留 full 层产物会误取
-              #   full 层期望 <项目>-gui.exe
-              $wantName = "${proj}${suffix}.exe"
-              $exe = Get-ChildItem $searchDir -Filter "*.exe" -ErrorAction SilentlyContinue |
-                     Where-Object { $_.Name -eq $wantName } |
-                     Select-Object -First 1
+              #   core 层（suffix 为空）期望 <项目>.exe，必须显式排除 *-gui.exe
+              #     与 *-full.exe，否则同目录若残留 full 层产物会误取
+              #   full 层期望 <项目>-gui.exe，但 Rust 的产物名由 Cargo.toml 的
+              #     [[bin]] 决定，实际叫 <项目>-full.exe；两种都认，full 语义
+              #     比 gui 更准，所以优先 -full，再退到 -gui
+              $coreExcl = "*-gui.exe", "*-full.exe"
+              $wantNames = if ($suffix -eq "") {
+                @("${proj}.exe")
+              } else {
+                @("${proj}-full.exe", "${proj}-gui.exe")
+              }
+              $exe = $null
+              foreach ($want in $wantNames) {
+                $exe = Get-ChildItem $searchDir -Filter "*.exe" -ErrorAction SilentlyContinue |
+                       Where-Object { $_.Name -eq $want } |
+                       Select-Object -First 1
+                if ($exe) { break }
+              }
 
               if (-not $exe -and $suffix -eq "") {
-                # 兜底：名字不完全一致时取任意非 -gui 的 exe（例如 Rust 的
-                # cargo 产物名由 Cargo.toml 的 [[bin]] 决定，可能不等于目录名）
+                # 兜底：cargo 的 bin 名可能不等于目录名，取任意非 full 层 exe
                 $exe = Get-ChildItem $searchDir -Filter "*.exe" -ErrorAction SilentlyContinue |
-                       Where-Object { $_.Name -notlike "*-gui.exe" } |
+                       Where-Object { $n = $_.Name; -not ($coreExcl | Where-Object { $n -like $_ }) } |
                        Sort-Object LastWriteTime -Descending | Select-Object -First 1
               } elseif (-not $exe -and $suffix -eq "-gui") {
-                $exe = Get-ChildItem $searchDir -Filter "*-gui.exe" -ErrorAction SilentlyContinue |
+                $exe = Get-ChildItem $searchDir -Filter "*.exe" -ErrorAction SilentlyContinue |
+                       Where-Object { $_.Name -like "*-gui.exe" -or $_.Name -like "*-full.exe" } |
                        Sort-Object LastWriteTime -Descending | Select-Object -First 1
               }
 
@@ -330,7 +341,7 @@ jobs:
                 Write-Host "收集: $dst ← $($exe.FullName)"
                 $count++
               } else {
-                Write-Host "::warning::未找到 $layer/$proj 的产物（期望 $wantName，目录 $searchDir）"
+                Write-Host "::warning::未找到 $layer/$proj 的产物（期望 $($wantNames -join ' 或 ')，目录 $searchDir）"
                 $missing += "$layer/$proj"
               }
             }
