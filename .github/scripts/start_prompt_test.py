@@ -240,7 +240,15 @@ DRIVER = r"""
         ok(menu.hidden === false, '再次展开（前提检查）');
         T.ModeService.switchTo('worldview', { silent: true });
         ok(menu.hidden === true, '切换模式后菜单应收起');
+
+        /* ---------- 8b2. 切换模式应清掉结果区来源提示 ---------- */
+        T.State.resultOrigin = 'start';
+        T.renderResultHint();
+        ok(Utils_('#resultHint').hidden === false, '来源为 start 时应显示提示（前提检查）');
         T.ModeService.switchTo('persona', { silent: true });
+        ok(T.State.resultOrigin === undefined, '切换模式后来源应被清掉',
+           String(T.State.resultOrigin));
+        ok(Utils_('#resultHint').hidden === true, '切换模式后提示应隐藏');
 
         /* ---------- 8c. 结果区来源提示 ---------- */
         T.State.resultOrigin = 'start';

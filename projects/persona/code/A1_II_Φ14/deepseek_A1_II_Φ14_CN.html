@@ -3428,6 +3428,11 @@
             });
             // 模式切换时收起菜单：菜单项的含义已经变了，留着会误点
             closeStartMenu();
+
+            // 切换模式后结果区里的内容属于上一个模式，来源提示也应一并清掉，
+            // 否则「通常不必写回人设」会挂在世界观模式的结果上方。
+            State.resultOrigin = undefined;
+            renderResultHint();
         },
 
         restore() {
