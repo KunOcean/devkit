@@ -386,7 +386,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data:; font-src 'self' data: https://fonts.gstatic.com; connect-src *; base-uri 'self'; object-src 'none'; form-action 'self';">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Fira+Code:wght@400;600&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto:wght@400;500;700&family=Fira+Code:wght@400;600&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
 <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -464,19 +464,23 @@
 
     /* ================= 皮肤：材料设计 ================= */
     :root {
-        --bg: #141218;
-        --surface: #1d1b20;
-        --surface-2: #25232a;
-        --surface-3: #322f38;
-        --border: #423f48;
-        --text: #e6e0e9;
-        --text-2: #cac4cf;
-        --text-3: #938f99;
-        --accent: #cfbcff;
-        --accent-fg: #2a1a5e;
-        --danger: #ffb4ab;
-        --ok: #8ddb9a;
-        --accent-soft: rgba(207, 188, 255, 0.14);
+        color-scheme: light;
+        --bg: #FBF9FF;
+        --surface: #FFFFFF;
+        --surface-2: #F5F1FF;
+        --surface-3: #EBE4FF;
+        --border: #DCD4EF;
+        --text: #111827;
+        --text-2: #49454F;
+        --text-3: #605D66;
+        --accent: #6442D6;
+        --accent-fg: #FFFFFF;
+        --danger: #DC2626;
+        --ok: #15803D;
+        --accent-soft: rgba(100, 66, 214, 0.14);
+        --shadow: 0 6px 16px -8px rgba(100, 66, 214, 0.35);
+        --share-accent-light: #4A2BA8;
+        --share-accent-dark: #C3ABFF;
     }
 
 
@@ -521,21 +525,22 @@
         --fs-320: 14.5px;
     }
 
-    /* ---- 字体 ---- */
+    /* ---- 字体 ----
+       skill: primary=Inter（正文 / UI）、display=Roboto（标题）、mono=Fira Code。
+       基版把 --font-serif 当「详述正文」用，这里保持它也是 Inter，
+       另加 --font-display 专门给标题，避免把 display 字体误用到正文。 */
     :root {
-        --font-ui: 'Roboto', 'Noto Sans SC', 'Microsoft YaHei', system-ui, sans-serif;
-        --font-serif: 'Roboto', 'Noto Sans SC', 'Songti SC', serif;
+        --font-ui: 'Inter', 'Noto Sans SC', 'Microsoft YaHei', system-ui, sans-serif;
+        --font-serif: 'Inter', 'Noto Sans SC', 'Songti SC', serif;
         --font-mono: 'Fira Code', 'Noto Sans SC', ui-monospace, Consolas, monospace;
+        --font-display: 'Roboto', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
         --fw-title: 600;
         --ls-title: 0.015em;
     }
+
     body, button, input, select, textarea { letter-spacing: var(--ls-title); }
 
-    /* Material：药丸按钮、大圆角面板、分层投影（MD3 形状语言） */
-    .btn, .btn.primary { border-radius: 999px; }
-    .modal-box { border-radius: 28px; }
-    .modal-box { box-shadow: 0 6px 10px rgba(0,0,0,0.15), 0 2px 3px rgba(0,0,0,0.30); }
-    .btn.sm { border-radius: 999px; }
+    /* 标题字体、药丸按钮与 MD3 弹窗装饰统一写在样式结束标签前的后置层，避免被基版覆盖。 */
 
 
     html, body { height: 100%; }
@@ -1338,6 +1343,17 @@
     #promptPreview { min-height: min(380px, 50vh); }
     @media (prefers-reduced-motion: reduce) {
         *, *::before, *::after { transition-duration: 0.01ms !important; }
+    }
+    /* ===== 皮肤装饰后置层（放在基版 CSS 之后，避免同特异性规则失效） ===== */
+    .side-head .title,
+    .editor-head .title,
+    .result-head .title,
+    .modal-head h2,
+    .brand { font-family: var(--font-display); }
+    .btn, .btn.primary, .btn.sm { border-radius: 999px; }
+    .modal-box {
+        border-radius: 28px;
+        box-shadow: 0 6px 10px rgba(100,66,214,0.10), 0 2px 3px rgba(100,66,214,0.14);
     }
 </style>
 </head>
@@ -6176,25 +6192,29 @@
     const SHARE_METRICS = { MARGIN: 96, BODY: 36, H1: 64, H2: 44, LINE: 1.75, GAP: 26 };
 
     function sharePalette(dark) {
+        const cs = getComputedStyle(document.documentElement);
+        const rd = function (k, d) { return (cs.getPropertyValue(k) || '').trim() || d; };
         if (dark) {
-            const cs = getComputedStyle(document.documentElement);
-            const rd = function (k, d) { return (cs.getPropertyValue(k) || '').trim() || d; };
+            // 分享图的「深色」是画布自身的一套深色配色，与界面当前是深是浅无关。
+            // 早先这里读 :root 令牌，界面一旦整体改成浅色，取到的就是浅色值，
+            // 深色渐变底上会变成深字压深底（对比度 1.0x）。改为固定值。
             return {
-                bg: rd('--bg', '#0f1115'),
-                panel: rd('--surface', '#151922'),
-                line: rd('--border', '#2a3140'),
-                text: rd('--text', '#e6e9ef'),
-                text2: rd('--text-2', '#98a2b3'),
-                text3: rd('--text-3', '#6f7a8c'),
-                accent: rd('--accent', '#7fd1c1')
+                bg: '#0f1115',
+                panel: '#151922',
+                line: '#2a3140',
+                text: '#e6e9ef',
+                text2: '#a8b2c3',
+                text3: '#8c96a8',
+                accent: rd('--share-accent-dark', '#7fd1c1')
             };
         }
-        // accent 用比界面主色（#2a9d8f）更深一档的 #1f7a6f：浅色渐变底色在
-        // #e0e4f5–#fdf2e6 之间，原来的 #2a9d8f 在这些底上对比度只有 2.63–3.02，
-        // 低于 WCAG AA 对非文本 UI 的 3.0；改后最低 4.07。深色模式无需调整（6.0+）。
+        // 浅色画布的强调色由各皮肤的 --share-accent-light 提供：需在
+        // #e0e4f5–#fdf2e6 渐变上达到 WCAG AA 非文本 UI 的 3.0；
+        // 深色画布则取 --share-accent-dark。缺省值仅用于基版回退。
         return {
             bg: '#f7f8fa', panel: '#ffffff', line: '#d8dee8',
-            text: '#1b202b', text2: '#4a5364', text3: '#6f7a8c', accent: '#1f7a6f'
+            text: '#1b202b', text2: '#4a5364', text3: '#6f7a8c',
+            accent: rd('--share-accent-light', '#1f7a6f')
         };
     }
 

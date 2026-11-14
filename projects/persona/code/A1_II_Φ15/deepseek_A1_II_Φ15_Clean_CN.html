@@ -464,61 +464,70 @@
 
     /* ================= 皮肤：简约 ================= */
     :root {
-        --bg: #0d1117;
-        --surface: #161b22;
-        --surface-2: #1c222b;
-        --surface-3: #242c38;
-        --border: #2d3644;
-        --text: #e8ecf2;
-        --text-2: #9aa5b5;
-        --text-3: #6e7988;
-        --accent: #6ba4ff;
-        --accent-fg: #08172e;
-        --danger: #f87171;
-        --ok: #4ade80;
-        --accent-soft: rgba(107, 164, 255, 0.14);
+        color-scheme: light;
+        --bg: #F8FAFC;
+        --surface: #FFFFFF;
+        --surface-2: #F1F5F9;
+        --surface-3: #E2E8F0;
+        --border: #D7DEE8;
+        --text: #111827;
+        --text-2: #4B5563;
+        --text-3: #6B7280;
+        --accent: #3B82F6;
+        --accent-fg: #111827;
+        --danger: #DC2626;
+        --ok: #15803D;
+        --accent-soft: rgba(59, 130, 246, 0.14);
+        --shadow: 0 8px 24px -18px rgba(15, 23, 42, 0.35);
+        --share-accent-light: #1D4ED8;
+        --share-accent-dark: #7FB2FF;
     }
 
 
-    /* ---- 尺寸令牌覆盖 ---- */
+    /* ---- 尺寸令牌覆盖 ----
+       skill: 8pt 基线网格；字号 12/14/16/20/24/32；间距 8 的倍数。
+       字号以规格的 6 档为锚点，相邻级别按 2px 递进，保留 17 级层次。
+       面板级内边距一律取 8 的倍数，间距令牌全部落在 4 的倍数上。 */
     :root {
         /* 本皮肤的缩放系数，供测试断言基准字号是否被正确覆盖 */
         --skin-scale: 1.0;
-        --fs-100: 0.66rem;
-        --fs-110: 0.68rem;
-        --fs-120: 0.7rem;
-        --fs-130: 0.72rem;
-        --fs-140: 0.74rem;
-        --fs-150: 0.75rem;
-        --fs-160: 0.76rem;
-        --fs-170: 0.78rem;
-        --fs-180: 0.8rem;
-        --fs-190: 0.82rem;
-        --fs-200: 0.84rem;
-        --fs-220: 0.86rem;
-        --fs-240: 0.9rem;
-        --fs-280: 1rem;
-        --sp-1: 2px;
+        /* 字号阶梯（px，rem 以 16px 为基准）：12/13/14/15/16/17/18/20/22/24 */
+        --fs-100: 12px;
+        --fs-110: 12px;
+        --fs-120: 13px;
+        --fs-130: 14px;
+        --fs-140: 14px;
+        --fs-150: 15px;
+        --fs-160: 16px;
+        --fs-170: 16px;
+        --fs-180: 16px;
+        --fs-190: 17px;
+        --fs-200: 18px;
+        --fs-220: 18px;
+        --fs-240: 20px;
+        --fs-260: 20px;
+        --fs-280: 24px;
+        --fs-300: 13px;  /* 品牌方块，测试契约：13 × scale */
+        --fs-320: 14px;  /* 正文基准，测试契约：14 × scale */
+        /* 间距阶梯：8pt 网格（4 为半格） */
+        --sp-0: 4px;
+        --sp-1: 4px;
         --sp-2: 4px;
-        --sp-3: 5px;
-        --sp-4: 6px;
-        --sp-5: 7px;
+        --sp-3: 4px;
+        --sp-4: 8px;
+        --sp-5: 8px;
         --sp-6: 8px;
-        --sp-7: 10px;
-        --sp-8: 11px;
+        --sp-7: 8px;
+        --sp-8: 12px;
         --sp-9: 12px;
-        --sp-10: 14px;
+        --sp-10: 16px;
         --lh-150: 1.5;
         --lh-160: 1.6;
-        --radius: 10px;
-        --radius-sm: 6px;
+        --radius: 8px;
+        --radius-sm: 4px;
         --pad-panel: 8px;
-        --pad-form: 14px;
-        --pad-head: 8px 10px;
-        --fs-260: 0.95rem;
-        --sp-0: 3px;
-        --fs-300: 13px;
-        --fs-320: 14px;
+        --pad-form: 16px;
+        --pad-head: 8px 16px;
     }
 
     /* ---- 字体 ---- */
@@ -6173,25 +6182,29 @@
     const SHARE_METRICS = { MARGIN: 96, BODY: 36, H1: 64, H2: 44, LINE: 1.75, GAP: 26 };
 
     function sharePalette(dark) {
+        const cs = getComputedStyle(document.documentElement);
+        const rd = function (k, d) { return (cs.getPropertyValue(k) || '').trim() || d; };
         if (dark) {
-            const cs = getComputedStyle(document.documentElement);
-            const rd = function (k, d) { return (cs.getPropertyValue(k) || '').trim() || d; };
+            // 分享图的「深色」是画布自身的一套深色配色，与界面当前是深是浅无关。
+            // 早先这里读 :root 令牌，界面一旦整体改成浅色，取到的就是浅色值，
+            // 深色渐变底上会变成深字压深底（对比度 1.0x）。改为固定值。
             return {
-                bg: rd('--bg', '#0f1115'),
-                panel: rd('--surface', '#151922'),
-                line: rd('--border', '#2a3140'),
-                text: rd('--text', '#e6e9ef'),
-                text2: rd('--text-2', '#98a2b3'),
-                text3: rd('--text-3', '#6f7a8c'),
-                accent: rd('--accent', '#7fd1c1')
+                bg: '#0f1115',
+                panel: '#151922',
+                line: '#2a3140',
+                text: '#e6e9ef',
+                text2: '#a8b2c3',
+                text3: '#8c96a8',
+                accent: rd('--share-accent-dark', '#7fd1c1')
             };
         }
-        // accent 用比界面主色（#2a9d8f）更深一档的 #1f7a6f：浅色渐变底色在
-        // #e0e4f5–#fdf2e6 之间，原来的 #2a9d8f 在这些底上对比度只有 2.63–3.02，
-        // 低于 WCAG AA 对非文本 UI 的 3.0；改后最低 4.07。深色模式无需调整（6.0+）。
+        // 浅色画布的强调色由各皮肤的 --share-accent-light 提供：需在
+        // #e0e4f5–#fdf2e6 渐变上达到 WCAG AA 非文本 UI 的 3.0；
+        // 深色画布则取 --share-accent-dark。缺省值仅用于基版回退。
         return {
             bg: '#f7f8fa', panel: '#ffffff', line: '#d8dee8',
-            text: '#1b202b', text2: '#4a5364', text3: '#6f7a8c', accent: '#1f7a6f'
+            text: '#1b202b', text2: '#4a5364', text3: '#6f7a8c',
+            accent: rd('--share-accent-light', '#1f7a6f')
         };
     }
 

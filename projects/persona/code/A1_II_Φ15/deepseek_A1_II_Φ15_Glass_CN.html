@@ -464,19 +464,23 @@
 
     /* ================= 皮肤：毛玻璃 ================= */
     :root {
-        --bg: #0b1020;
-        --surface: rgba(255,255,255,0.07);
-        --surface-2: rgba(255,255,255,0.10);
-        --surface-3: rgba(255,255,255,0.14);
-        --border: rgba(255,255,255,0.18);
-        --text: #eef2ff;
-        --text-2: #b6c0d8;
-        --text-3: #8494b3;
-        --accent: #6c96ff;
-        --accent-fg: #08122e;
-        --danger: #ff6b81;
-        --ok: #4fd68a;
-        --accent-soft: rgba(108, 150, 255, 0.14);
+        color-scheme: light;
+        --bg: #EEF2FF;
+        --surface: rgba(255,255,255,0.72);
+        --surface-2: rgba(255,255,255,0.86);
+        --surface-3: rgba(255,255,255,0.95);
+        --border: rgba(24,86,255,0.20);
+        --text: #141414;
+        --text-2: #3A344E;
+        --text-3: #5C5A6E;
+        --accent: #1856FF;
+        --accent-fg: #FFFFFF;
+        --danger: #EA2143;
+        --ok: #0A8F4D;
+        --accent-soft: rgba(24, 86, 255, 0.14);
+        --shadow: 0 24px 60px -34px rgba(24, 86, 255, 0.35);
+        --share-accent-light: #0B3AC4;
+        --share-accent-dark: #7A9BFF;
     }
 
 
@@ -531,7 +535,9 @@
     }
     body, button, input, select, textarea { letter-spacing: var(--ls-title); }
 
-    /* Glass：半透明叠层 + 背景虚化 + 大圆角，字号与留白都放大 */
+    /* Glass：半透明叠层 + 背景虚化 + 大圆角 + bento 卡片
+       skill 明确写了 bento cards：把侧栏的人设区、世界区与底部操作拆成
+       彼此独立的浮起卡片，用间距而不是分割线表达分区。 */
     .topbar, .sidebar, .result, .promptbar {
         -webkit-backdrop-filter: blur(18px) saturate(1.4);
         backdrop-filter: blur(18px) saturate(1.4);
@@ -542,6 +548,7 @@
     }
     .modal-box, .sidebar, .result { box-shadow: var(--shadow); }
     .btn { font-weight: 500; }
+
 
 
     html, body { height: 100%; }
@@ -1344,6 +1351,77 @@
     #promptPreview { min-height: min(380px, 50vh); }
     @media (prefers-reduced-motion: reduce) {
         *, *::before, *::after { transition-duration: 0.01ms !important; }
+    }
+
+    /* ==================================================================
+     * Glass bento 后置覆盖层
+     * ------------------------------------------------------------------
+     * 早先这段写在 <style> 前段，被基版同特异性的 .sidebar / .mode-switch /
+     * .side-foot 规则覆盖，只有部分生效。统一挪到基版 CSS 之后。
+     *
+     * 只在宽屏桌面三栏（≥1200px 且高度 >480px）启用 bento：
+     *   700–1199px 的侧栏 / 结果栏是 200px / 320px 固定宽，再叠加
+     *   10px gap + 四周 10px padding 会把编辑区压到放不下 .editor-head
+     *   的按钮，而卡片外壳的 overflow:hidden 会直接把它们裁掉；
+     *   ≤699px 或 ≤480px 走基版页签模式，本来就该全宽无外框。
+     * 因此较窄 / 较矮的屏幕完全回到基版布局，不再叠加任何 bento 规则。
+     * 只改卡片外壳，不动 DOM、不改 display/flex/width。
+     * ================================================================== */
+    /* 基版前段的 .result { box-shadow: var(--shadow) } 会让零宽折叠栏
+       留下阴影残片；这条复位在所有宽度生效，窄屏页签模式也保持隐藏态干净。 */
+    .workspace > .result.collapsed {
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    @media (min-width: 1200px) and (min-height: 481px) {
+        .workspace { gap: 10px; padding: 10px; }
+        .workspace > .sidebar {
+            background: transparent; border-right: none;
+            gap: 10px; padding: 10px; overflow-y: auto;
+        }
+        .workspace > .sidebar > .mode-switch {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin: 0;
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+        }
+        .workspace .side-personas,
+        .workspace .side-worldviews {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: 0 1px 2px rgba(24, 86, 255, 0.06), 0 10px 24px -20px rgba(24, 86, 255, 0.45);
+        }
+        .workspace .side-foot {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: 0 1px 2px rgba(24, 86, 255, 0.06), 0 10px 24px -20px rgba(24, 86, 255, 0.45);
+        }
+        .workspace .side-personas .persona-list,
+        .workspace .side-worldviews .wv-list { padding: 8px; }
+
+        /* 编辑 / 结果区：浮起卡片外壳，内部表单与流式布局保持不变 */
+        .workspace > .editor:not(.collapsed),
+        .workspace > .result:not(.collapsed) {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: 0 1px 2px rgba(24, 86, 255, 0.06), 0 10px 24px -20px rgba(24, 86, 255, 0.45);
+            overflow: hidden;
+        }
+
+        /* 折叠态：结果栏宽度归零后，flex 仍会为它与编辑区之间保留 10px gap。
+           用 -10px 左外边距抵消这一段，编辑区才会贴到与展开态卡片相同的
+           右沿（仍保留 workspace 右侧 10px 内距）。 */
+        .workspace > .result.collapsed { margin-left: -10px; }
     }
 </style>
 </head>
@@ -6182,25 +6260,29 @@
     const SHARE_METRICS = { MARGIN: 96, BODY: 36, H1: 64, H2: 44, LINE: 1.75, GAP: 26 };
 
     function sharePalette(dark) {
+        const cs = getComputedStyle(document.documentElement);
+        const rd = function (k, d) { return (cs.getPropertyValue(k) || '').trim() || d; };
         if (dark) {
-            const cs = getComputedStyle(document.documentElement);
-            const rd = function (k, d) { return (cs.getPropertyValue(k) || '').trim() || d; };
+            // 分享图的「深色」是画布自身的一套深色配色，与界面当前是深是浅无关。
+            // 早先这里读 :root 令牌，界面一旦整体改成浅色，取到的就是浅色值，
+            // 深色渐变底上会变成深字压深底（对比度 1.0x）。改为固定值。
             return {
-                bg: rd('--bg', '#0f1115'),
-                panel: rd('--surface', '#151922'),
-                line: rd('--border', '#2a3140'),
-                text: rd('--text', '#e6e9ef'),
-                text2: rd('--text-2', '#98a2b3'),
-                text3: rd('--text-3', '#6f7a8c'),
-                accent: rd('--accent', '#7fd1c1')
+                bg: '#0f1115',
+                panel: '#151922',
+                line: '#2a3140',
+                text: '#e6e9ef',
+                text2: '#a8b2c3',
+                text3: '#8c96a8',
+                accent: rd('--share-accent-dark', '#7fd1c1')
             };
         }
-        // accent 用比界面主色（#2a9d8f）更深一档的 #1f7a6f：浅色渐变底色在
-        // #e0e4f5–#fdf2e6 之间，原来的 #2a9d8f 在这些底上对比度只有 2.63–3.02，
-        // 低于 WCAG AA 对非文本 UI 的 3.0；改后最低 4.07。深色模式无需调整（6.0+）。
+        // 浅色画布的强调色由各皮肤的 --share-accent-light 提供：需在
+        // #e0e4f5–#fdf2e6 渐变上达到 WCAG AA 非文本 UI 的 3.0；
+        // 深色画布则取 --share-accent-dark。缺省值仅用于基版回退。
         return {
             bg: '#f7f8fa', panel: '#ffffff', line: '#d8dee8',
-            text: '#1b202b', text2: '#4a5364', text3: '#6f7a8c', accent: '#1f7a6f'
+            text: '#1b202b', text2: '#4a5364', text3: '#6f7a8c',
+            accent: rd('--share-accent-light', '#1f7a6f')
         };
     }
 
