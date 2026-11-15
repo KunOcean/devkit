@@ -68,6 +68,11 @@ DevKit 有 9 个皮肤，另有 1 个「九皮肤合一」版本：
 > 与 `--empty-text` / `--font-code` / `--border` / `--dropzone-active` 令牌，
 > 否则主题变量会静默失效。`size_guard.py` 会校验 10 份文件的组件 CSS 与功能脚本同源。
 
+Writer `A1_I_Φ6` 同样采用「同主干并行皮肤」：`deepseek_A1_I_Φ6_<Variant>_CN.html`，
+变体词为 `Clean / Glass / Material / Minimal / Mono / Neon / Premium / Shadcn`，
+依据 `.claude/skills/<风格>/SKILL.md` 与 `DESIGN.md` 派生。每个文件内部
+自带 `dark / light / auto` 三态（`prefs.ui.themePref`），不做合并版。
+
 ---
 
 ## 构建
