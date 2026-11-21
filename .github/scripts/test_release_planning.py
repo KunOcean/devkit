@@ -138,6 +138,33 @@ class TestPlanAuto(unittest.TestCase):
             sorted([("devkit", "A1_V_Φ9"), ("writer", "A1_I_Φ3")]),
         )
 
+    def test_same_project_multiple_trunks(self):
+        """同一项目下多个主干同时有交付物改动时，每个主干各发一个 Release。
+
+        与 test_both_projects_changed 互补：那条测的是「多项目各一个主干」，
+        这条测「一个项目内多主干」——扫描时不能只保留第一个主干。
+        """
+        targets, _ = ar.plan_auto(
+            [
+                f("projects/devkit/code/A1_VI_Φ1/a.html"),
+                f("projects/devkit/code/A1_V_Φ9/b.html"),
+            ]
+        )
+        self.assertEqual(
+            sorted((p, t) for p, t, _ in targets),
+            sorted([("devkit", "A1_VI_Φ1"), ("devkit", "A1_V_Φ9")]),
+        )
+
+    def test_same_project_multiple_trunks_scan(self):
+        """scan_changes 层同样不能只留一个主干。"""
+        out = ar.scan_changes(
+            [
+                f("projects/devkit/code/A1_VI_Φ1/a.html"),
+                f("projects/devkit/code/A1_V_Φ9/b.html"),
+            ]
+        )
+        self.assertEqual(sorted(out["devkit"]["trunks"]), sorted(["A1_VI_Φ1", "A1_V_Φ9"]))
+
     def test_unknown_comparison_releases_nothing(self):
         """compare 失败时不能退化为全量发版：一次异常会连发十几个 Release。
 
