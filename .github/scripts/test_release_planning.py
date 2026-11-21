@@ -90,13 +90,43 @@ class TestPlanAuto(unittest.TestCase):
         self.assertEqual(targets, [])
         self.assertIn("不发布任何 Release", reason)
 
-    def test_index_only_uses_no_changes_mode(self):
-        targets, _ = ar.plan_auto([f("projects/writer/code/index.html")])
-        self.assertEqual(len(targets), 1)
-        project, trunk, mode = targets[0]
-        self.assertEqual(project, "writer")
-        self.assertEqual(mode, "no_changes")
-        self.assertEqual(trunk, ar.latest_trunk("writer"))
+    def test_index_only_releases_nothing(self):
+        """索引页不是交付物：只改 code/index.html 不应发任何 Release。
+
+        2026-11-21 之前这里会给最新主干发一个 no_changes Release，
+        一次纯文案改动因此烧掉了每个项目的一个标签名。
+        """
+        targets, reason = ar.plan_auto([f("projects/writer/code/index.html")])
+        self.assertEqual(targets, [])
+        self.assertIn("不发布任何 Release", reason)
+
+    def test_trunk_index_page_releases_nothing(self):
+        """主干目录内的 index.html 同样不是交付物，不该触发该主干的发布。"""
+        targets, reason = ar.plan_auto(
+            [f("projects/devkit/code/A1_V_Φ9/index.html")]
+        )
+        self.assertEqual(targets, [])
+        self.assertIn("不发布任何 Release", reason)
+
+    def test_nested_index_page_releases_nothing(self):
+        """主干下更深层目录里的 index.html 也不算交付物。
+
+        判断按文件名而非固定层级：若将来主干下出现子目录（如 assets/），
+        该子目录的 index.html 改动同样不该触发发布，否则 2026-11-21 的
+        连发问题会复发。
+        """
+        targets, reason = ar.plan_auto(
+            [f("projects/devkit/code/A1_V_Φ9/sub/index.html")]
+        )
+        self.assertEqual(targets, [])
+        self.assertIn("不发布任何 Release", reason)
+
+    def test_nested_non_index_file_still_releases(self):
+        """深层目录里的非 index.html 仍算交付物改动，不能一并跳过。"""
+        targets, _ = ar.plan_auto(
+            [f("projects/devkit/code/A1_V_Φ9/sub/notes.html")]
+        )
+        self.assertEqual(targets, [("devkit", "A1_V_Φ9", "changed")])
 
     def test_both_projects_changed(self):
         targets, _ = ar.plan_auto(
@@ -249,7 +279,7 @@ class TestArchiveDirsAreNotTrunks(unittest.TestCase):
                 (code / "A1_V_Φ9_fix-archive").mkdir()
                 ar.PROJECTS_DIR = tmp_root
                 targets, _ = ar.plan_auto([f("projects/demo/code/index.html")])
-                self.assertEqual(targets, [("demo", "A1_V_Φ9", "no_changes")])
+                self.assertEqual(targets, [])
         finally:
             ar.PROJECTS_DIR = original
 
@@ -299,8 +329,8 @@ class TestArchiveDirsAreNotTrunks(unittest.TestCase):
         self.assertEqual(ar.roman_value(""), 0)
         self.assertEqual(ar.roman_value("Z"), 0)
 
-    def test_index_only_change_targets_new_roman_trunk(self):
-        """只改 code/index.html 时，无功能更新应发给 A1_VI_Φ1 而非已冻结的 Φ11。"""
+    def test_index_only_change_releases_nothing_even_with_new_roman_trunk(self):
+        """索引页改动不再发布；此处确认即便存在新罗马主干也不会误发。"""
         original = ar.PROJECTS_DIR
         try:
             import tempfile
@@ -312,7 +342,7 @@ class TestArchiveDirsAreNotTrunks(unittest.TestCase):
                 (code / "A1_VI_Φ1").mkdir()
                 ar.PROJECTS_DIR = tmp_root
                 targets, _ = ar.plan_auto([f("projects/demo/code/index.html")])
-                self.assertEqual(targets, [("demo", "A1_VI_Φ1", "no_changes")])
+                self.assertEqual(targets, [])
         finally:
             ar.PROJECTS_DIR = original
 
@@ -330,8 +360,8 @@ class TestArchiveDirsAreNotTrunks(unittest.TestCase):
                 targets, _ = ar.plan_auto(
                     [f("projects/demo/code/A1_V_Φ9_fix-archive/deepseek_A1_V_Φ9_CN.html")]
                 )
-                # 归档不是主干 → 退化为「该项目未动主干」，给最新真主干发无功能更新
-                self.assertEqual(targets, [("demo", "A1_V_Φ9", "no_changes")])
+                # 归档不是主干，且索引页类改动不再发布 → 本次不发任何 Release
+                self.assertEqual(targets, [])
         finally:
             ar.PROJECTS_DIR = original
 
