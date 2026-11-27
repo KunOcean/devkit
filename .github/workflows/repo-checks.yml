@@ -108,9 +108,13 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v7
       # 测试版不归 version_guard 管（那只遍历 code/），由 test_guard 单独校验：
-      # 目录/文件名/版本代号/CURRENT_VERSION 四处一致、基线主干存在、
-      # 必须带自检标记，且正式版不得被注入。
+      # 文件名/版本代号/CURRENT_VERSION 一致、基线主干存在、必须带自检标记、
+      # 正式版不得被注入，且生成清单与磁盘目录双向对齐。
       - name: 校验测试版结构
         run: python3 .github/scripts/test_guard.py
       - name: 校验测试版与正式版同步
         run: python3 .github/scripts/build_test_version.py --check
+      # 自检脚本本身也要能跑通：用无头 Chrome 打开每个测试版、点自检、
+      # 逐项读 PASS / FAIL。自检写坏了不会让任何其它守卫变红。
+      - name: 实测内置自检
+        run: python3 .github/scripts/test_selftest_runner.py
