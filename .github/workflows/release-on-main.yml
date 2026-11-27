@@ -32,8 +32,16 @@ on:
         required: false
         default: 'devkit'
         type: string
+      kind:
+        description: '发布类型：code = 正式交付物（projects/<项目>/code/），test = 测试版（projects/<项目>/test/）'
+        required: false
+        default: 'code'
+        type: choice
+        options:
+          - code
+          - test
       trunk:
-        description: '主干名（须与 projects/<项目>/code/ 下的目录同名，例如 A1_V_Φ7）'
+        description: '主干名或测试版本名（须与 projects/<项目>/code/ 或 test/ 下的目录同名，例如 A1_V_Φ7 / A1_VI_Φ1_Test1）'
         required: true
         type: string
       suffix:
@@ -65,4 +73,5 @@ jobs:
           DISPATCH_PROJECT: ${{ inputs.project }}
           DISPATCH_TRUNK: ${{ inputs.trunk }}
           DISPATCH_SUFFIX: ${{ inputs.suffix }}
+          DISPATCH_KIND: ${{ inputs.kind }}
         run: python3 .github/scripts/auto_release.py
