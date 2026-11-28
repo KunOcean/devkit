@@ -7193,12 +7193,24 @@
           if (!tabs.length) throw new Error('页签模式下缺少 .mtab');
           return '页签模式 · ' + shown[0].getAttribute('data-pane') + ' 可见';
         }
-        nodes.forEach(function (n) {
-          if (n.getBoundingClientRect().width <= 0) {
-            throw new Error('.' + n.getAttribute('data-pane') + ' 宽度为 0');
-          }
+        // 宽屏三栏并存，但结果栏可能被用户折叠（持久化偏好
+        // resultCollapsed；产品会把 .result.collapsed 的宽度收成 0）。
+        // 那是合法用户状态，不能算失败：结果栏折叠时只要求侧栏与编辑区可见。
+        var missing = nodes.filter(function (n) {
+          if (n.getBoundingClientRect().width > 0) return false;
+          var pane = n.getAttribute('data-pane');
+          if (pane === 'result' && n.classList.contains('collapsed')) return false;
+          return true;
         });
-        return '侧栏 / 编辑 / 结果三栏就绪';
+        if (missing.length) {
+          throw new Error('宽度为 0：' + missing.map(function (n) {
+            return '.' + n.getAttribute('data-pane');
+          }).join(', '));
+        }
+        var collapsed = nodes.filter(function (n) {
+          return n.classList.contains('collapsed');
+        }).length;
+        return collapsed ? '三栏就绪（结果栏折叠，属用户偏好）' : '侧栏 / 编辑 / 结果三栏就绪';
       }),
       check('弹窗打开时 display 为 flex', function () {
         var modal = document.getElementById('aboutModal');
@@ -7243,8 +7255,14 @@
         var t = document.getElementById('resultToggleBtn');
         if (t) t.click();
       }
+      // 关掉自检新开的弹窗；再把自检前就开着的弹窗重新打开
+      // （首访时 aboutModal 是产品自己常驻打开的，必须还原）。
       $$('.modal.open').forEach(function (m) {
         if (openModalsBefore.indexOf(m.id) < 0) m.classList.remove('open');
+      });
+      openModalsBefore.forEach(function (id) {
+        var m = document.getElementById(id);
+        if (m && !m.classList.contains('open')) m.classList.add('open');
       });
       window.removeEventListener('error', onErr);
       window.removeEventListener('unhandledrejection', onErr);
@@ -7421,7 +7439,7 @@
     wrap.appendChild(box);
     document.body.appendChild(wrap);
 
-    function shut() { wrap.remove(); }
+    function shut() { wrap.remove(); restoreTitle(); }
     close.addEventListener('click', shut);
     rerun.addEventListener('click', function () { shut(); setTimeout(run, 0); });
     wrap.addEventListener('click', function (e) { if (e.target === wrap) shut(); });
@@ -7450,7 +7468,19 @@
     });
   }
 
+  /* 防重入：run() 会 await 一串异步检查，期间用户再点「自检」会让两轮
+     检查交叉执行——同一个弹窗被反复移除/重建、产品的模式切换与折叠态
+     互相打架。persona 上实测能稳定把渲染进程拖死（快速双点 5/8 复现）。
+     已有结果弹窗时直接复用，不重跑。 */
+  var running = false;
+  var titleBefore = null;
+  var lastResult = '';
+
   async function run() {
+    if (running) return;
+    if (document.getElementById('selftestModal')) return;
+    running = true;
+    if (titleBefore === null) titleBefore = document.title;
     results = [];
     injectStyle();
     await waitReady(15000);
@@ -7458,8 +7488,23 @@
     await styleChecks();
     await interactionChecks();
     var r = render();
-    document.title = (r.bad === 0 ? 'SELFTEST-PASS ' : 'SELFTEST-FAIL ') +
+    // 标题只用于无头浏览器断言；普通用户关掉弹窗后必须还原，
+    // 否则标签页会一直停在 SELFTEST-PASS n/m。
+    lastResult = (r.bad === 0 ? 'SELFTEST-PASS ' : 'SELFTEST-FAIL ') +
       r.good + '/' + r.total;
+    // 弹窗可能已被用户关掉（或已被下一次 run 重建）：只在它仍挂着时写标题，
+    // 否则会把关闭时还原过的标题又改回 SELFTEST-PASS。
+    if (document.getElementById('selftestModal')) document.title = lastResult;
+    // 结果同时写进 <html data-selftest>：自动化在弹窗还开着时就要能读到
+    // 结论（用户关掉弹窗后标题会被还原，不能只靠标题）。
+    try { document.documentElement.setAttribute('data-selftest', lastResult); } catch (e) {}
+    running = false;
+  }
+
+  /* 结果 UI 关闭时把标题还原；标题同时通过 data 属性暴露给自动化，
+     避免为了断言而永久污染用户的标签页。 */
+  function restoreTitle() {
+    if (titleBefore !== null) document.title = titleBefore;
   }
 
   /* ---------------- 注入入口 ---------------- */

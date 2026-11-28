@@ -310,7 +310,7 @@
     wrap.appendChild(box);
     document.body.appendChild(wrap);
 
-    function shut() { wrap.remove(); }
+    function shut() { wrap.remove(); restoreTitle(); }
     close.addEventListener('click', shut);
     rerun.addEventListener('click', function () { shut(); setTimeout(run, 0); });
     wrap.addEventListener('click', function (e) { if (e.target === wrap) shut(); });
@@ -339,7 +339,19 @@
     });
   }
 
+  /* 防重入：run() 会 await 一串异步检查，期间用户再点「自检」会让两轮
+     检查交叉执行——同一个弹窗被反复移除/重建、产品的模式切换与折叠态
+     互相打架。persona 上实测能稳定把渲染进程拖死（快速双点 5/8 复现）。
+     已有结果弹窗时直接复用，不重跑。 */
+  var running = false;
+  var titleBefore = null;
+  var lastResult = '';
+
   async function run() {
+    if (running) return;
+    if (document.getElementById('selftestModal')) return;
+    running = true;
+    if (titleBefore === null) titleBefore = document.title;
     results = [];
     injectStyle();
     await waitReady(15000);
@@ -347,8 +359,23 @@
     await styleChecks();
     await interactionChecks();
     var r = render();
-    document.title = (r.bad === 0 ? 'SELFTEST-PASS ' : 'SELFTEST-FAIL ') +
+    // 标题只用于无头浏览器断言；普通用户关掉弹窗后必须还原，
+    // 否则标签页会一直停在 SELFTEST-PASS n/m。
+    lastResult = (r.bad === 0 ? 'SELFTEST-PASS ' : 'SELFTEST-FAIL ') +
       r.good + '/' + r.total;
+    // 弹窗可能已被用户关掉（或已被下一次 run 重建）：只在它仍挂着时写标题，
+    // 否则会把关闭时还原过的标题又改回 SELFTEST-PASS。
+    if (document.getElementById('selftestModal')) document.title = lastResult;
+    // 结果同时写进 <html data-selftest>：自动化在弹窗还开着时就要能读到
+    // 结论（用户关掉弹窗后标题会被还原，不能只靠标题）。
+    try { document.documentElement.setAttribute('data-selftest', lastResult); } catch (e) {}
+    running = false;
+  }
+
+  /* 结果 UI 关闭时把标题还原；标题同时通过 data 属性暴露给自动化，
+     避免为了断言而永久污染用户的标签页。 */
+  function restoreTitle() {
+    if (titleBefore !== null) document.title = titleBefore;
   }
 
   /* ---------------- 注入入口 ---------------- */

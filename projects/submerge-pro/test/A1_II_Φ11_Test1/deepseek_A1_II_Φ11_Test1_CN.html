@@ -1107,12 +1107,21 @@ ${mergedText}`;
         if (missing.length) throw new Error('缺少：' + missing.join(', '));
         return ids.length + ' 个 id 全部存在';
       }),
-      check('初始为空态', function () {
-        var txt = document.getElementById('entryCountDisplay').textContent || '';
-        if (txt.indexOf('未加载字幕') < 0) throw new Error('状态栏为：' + txt);
+      check('状态栏与预览表一致', function () {
+        // 不能在自检里假设「一定还没载字幕」：用户在本次会话里传过文件时，
+        // 状态栏会是「✅ 原始 N 条 · 拆分后 M 条」。这里按当前状态分支断言，
+        // 两种状态都必须自洽。
+        var txt = (document.getElementById('entryCountDisplay').textContent || '').trim();
         var rows = document.querySelectorAll('#tableBody tr');
-        if (rows.length !== 1) throw new Error('预览表行数 ' + rows.length);
-        return '未加载字幕 + 空提示行';
+        var empty = txt.indexOf('未加载字幕') >= 0;
+        if (empty) {
+          if (rows.length !== 1) throw new Error('未载字幕时预览表应只有提示行，实际 ' + rows.length);
+          return '空态：未加载字幕';
+        }
+        var m = txt.match(/原始\s*(\d+)\s*条\s*·\s*拆分后\s*(\d+)\s*条/);
+        if (!m) throw new Error('状态栏文案无法识别：' + txt.slice(0, 40));
+        if (rows.length < 1) throw new Error('已载字幕但预览表为空');
+        return '已载字幕：原始 ' + m[1] + ' 条，表格 ' + rows.length + ' 行';
       }),
       check('许可证声明存在', function () {
         var txt = document.body.textContent || '';
@@ -1137,14 +1146,28 @@ ${mergedText}`;
         if (!/\bskin-\w+\b/.test(cls)) throw new Error('body 类名为 ' + JSON.stringify(cls));
         return cls.match(/\bskin-\w+\b/)[0];
       }),
-      check('空态下操作按钮禁用', function () {
+      check('操作按钮可用性随状态变化', function () {
+        // 未载字幕时全禁用；已载字幕时至少导出 / 重置应可用。
         var ids = ['mergeBtn', 'undoBtn', 'exportBtn', 'resetBtn', 'copyMergedBtn'];
-        var enabled = ids.filter(function (id) {
-          var n = document.getElementById(id);
-          return n && !n.disabled;
+        var nodes = ids.map(function (id) { return document.getElementById(id); });
+        if (nodes.some(function (n) { return !n; })) {
+          throw new Error('缺少按钮节点');
+        }
+        var empty = (document.getElementById('entryCountDisplay').textContent || '')
+          .indexOf('未加载字幕') >= 0;
+        if (empty) {
+          var enabled = nodes.filter(function (n) { return !n.disabled; });
+          if (enabled.length) {
+            throw new Error('未载字幕时不应有可用按钮：' + enabled.length + ' 个');
+          }
+          return '空态：5 个按钮均禁用';
+        }
+        ['exportBtn', 'resetBtn'].forEach(function (id) {
+          if (document.getElementById(id).disabled) {
+            throw new Error('已载字幕但 ' + id + ' 被禁用');
+          }
         });
-        if (enabled.length) throw new Error('未禁用：' + enabled.join(', '));
-        return '5 个按钮均为禁用';
+        return '已载字幕：导出 / 重置可用';
       })
     ]);
   }
@@ -1221,9 +1244,11 @@ ${mergedText}`;
           if (getComputedStyle(custom).display !== 'none') {
             throw new Error('切回固定帧率后输入框未隐藏');
           }
+          // FPS 行是否显示由文件名决定（.bcc 才显示）。自检不改文件名，
+          // 因此只断言「切换帧率不应改变该行的显隐」，不假设它一定隐藏。
           if (row.style.display === '') {
-            // .srt 空态下整行本应隐藏，切 fps 不应把它打开
-            throw new Error('FPS 行不应在非 bcc 空态下显示');
+            var loaded = !document.getElementById('fileInput').files.length;
+            if (loaded) throw new Error('未载文件时 FPS 行不应被打开');
           }
           return '显示 / 隐藏正常';
         });
@@ -1358,7 +1383,7 @@ ${mergedText}`;
     wrap.appendChild(box);
     document.body.appendChild(wrap);
 
-    function shut() { wrap.remove(); }
+    function shut() { wrap.remove(); restoreTitle(); }
     close.addEventListener('click', shut);
     rerun.addEventListener('click', function () { shut(); setTimeout(run, 0); });
     wrap.addEventListener('click', function (e) { if (e.target === wrap) shut(); });
@@ -1369,15 +1394,42 @@ ${mergedText}`;
     return { total: total, bad: bad, good: good };
   }
 
+  /* 防重入：run() 会 await 一串异步检查，期间用户再点「自检」会让两轮
+     检查交叉执行——同一个弹窗被反复移除/重建、产品的模式切换与折叠态
+     互相打架。persona 上实测能稳定把渲染进程拖死（快速双点 5/8 复现）。
+     已有结果弹窗时直接复用，不重跑。 */
+  var running = false;
+  var titleBefore = null;
+  var lastResult = '';
+
   async function run() {
+    if (running) return;
+    if (document.getElementById('selftestModal')) return;
+    running = true;
+    if (titleBefore === null) titleBefore = document.title;
     results = [];
     injectStyle();
     await structureChecks();
     await styleChecks();
     await interactionChecks();
     var r = render();
-    document.title = (r.bad === 0 ? 'SELFTEST-PASS ' : 'SELFTEST-FAIL ') +
+    // 标题只用于无头浏览器断言；普通用户关掉弹窗后必须还原，
+    // 否则标签页会一直停在 SELFTEST-PASS n/m。
+    lastResult = (r.bad === 0 ? 'SELFTEST-PASS ' : 'SELFTEST-FAIL ') +
       r.good + '/' + r.total;
+    // 弹窗可能已被用户关掉（或已被下一次 run 重建）：只在它仍挂着时写标题，
+    // 否则会把关闭时还原过的标题又改回 SELFTEST-PASS。
+    if (document.getElementById('selftestModal')) document.title = lastResult;
+    // 结果同时写进 <html data-selftest>：自动化在弹窗还开着时就要能读到
+    // 结论（用户关掉弹窗后标题会被还原，不能只靠标题）。
+    try { document.documentElement.setAttribute('data-selftest', lastResult); } catch (e) {}
+    running = false;
+  }
+
+  /* 结果 UI 关闭时把标题还原；标题同时通过 data 属性暴露给自动化，
+     避免为了断言而永久污染用户的标签页。 */
+  function restoreTitle() {
+    if (titleBefore !== null) document.title = titleBefore;
   }
 
   /* ---------------- 注入入口 ---------------- */

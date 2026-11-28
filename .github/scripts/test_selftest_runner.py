@@ -242,16 +242,25 @@ def run_one(browser: str, project: str, ver: str, fname: str) -> tuple[bool, str
         return False, f"未找到自检结果弹窗（title={title.group(1).strip() if title else '空'}，rc={rc}）", []
 
     text = dom[idx:]
+    # 结果同时写在 <html data-selftest> 里。自检关闭弹窗时会还原
+    # document.title（那是用户可见的标签页），所以不能只靠 title 取结论。
+    attr = re.search(r'data-selftest="([^"]*)"', dom)
+    attr_result = attr.group(1).strip() if attr else ''
     m = SUMMARY_RE.search(text)
     # 逐项名称 + PASS/FAIL：结果行形如 <span ...>PASS</span><span ...>名称 — 详情</span>
+    # devkit 的结果行是 <span>PASS</span><span>名称<span> — 详情</span></span>，
+    # 其余四个是 <span>PASS</span><span>名称 — 详情</span>。用更宽松的匹配：
+    # 只取 PASS/FAIL 之后到下一个尖括号之间的文本，不强求 span 嵌套层级。
     rows = re.findall(
-        r">(PASS|FAIL)</span><span[^>]*>([^<]*)</span>", text, re.S
+        r">(PASS|FAIL)</span>\s*<span[^>]*>([^<]*)", text, re.S
     )
     fail_names = [name.strip() for tag, name in rows if tag == "FAIL"]
     if not m:
         return False, "结果弹窗里没有汇总行", fail_names
     good, total = int(m.group(2)), int(m.group(3))
     ok = m.group(1) == "全部通过" and good == total and not fail_names
+    if attr_result and not attr_result.startswith(("SELFTEST-PASS", "SELFTEST-FAIL")):
+        return False, f"data-selftest 内容异常：{attr_result[:40]}", fail_names
     return ok, f"{good}/{total}", fail_names
 
 

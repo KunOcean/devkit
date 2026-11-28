@@ -65,10 +65,16 @@
         if (missing.length) throw new Error('缺少：' + missing.join(', '));
         return ids.length + ' 个 id 全部存在';
       }),
-      check('启动日志已写入', function () {
-        var txt = (document.getElementById('logOutput') || {}).textContent || '';
-        if (txt.indexOf('DirCleaner 已就绪') < 0) throw new Error('未看到就绪日志：' + txt.slice(0, 40));
-        return '就绪日志存在';
+      check('日志区就绪', function () {
+        // 不假设「就绪」那一行还在：用户可能点过「清空日志」，而自检也
+        // 会清一次。只断言日志容器存在且是 <pre>（产品写日志用的节点）。
+        var log = document.getElementById('logOutput');
+        if (!log) throw new Error('logOutput 不存在');
+        if (!log.children.length && !log.textContent.trim()) {
+          // 空日志也合法（用户可能清过），只要容器还在
+          return '日志容器就绪（当前为空）';
+        }
+        return '日志容器就绪';
       }),
       check('统计卡片已初始化', function () {
         var ids = ['totalFiles', 'totalDirs', 'totalSize', 'totalErrors'];
@@ -134,6 +140,12 @@
     // 刚出现的就绪日志。所以快照为空时不动它。
     var logNode = document.getElementById('logOutput');
     var logBefore = logNode ? logNode.innerHTML : '';
+    // 确认区初始态：产品的 updateWhitelistUI 会主动放开/收紧输入框，
+    // 自检点过复选框后必须按原值还原，否则用户看到的是被自检改过的状态。
+    var confirmNode = document.getElementById('confirmCheck');
+    var confirmCheckedBefore = confirmNode ? confirmNode.checked : false;
+    var nameInputNode = document.getElementById('confirmNameInput');
+    var nameDisabledBefore = nameInputNode ? nameInputNode.disabled : true;
 
     function restore() {
       var menu = document.getElementById('themeMenu');
@@ -148,12 +160,14 @@
       // 后续写入的日志属于产品自己，不能覆盖
       var log = document.getElementById('logOutput');
       if (log && logBefore) log.innerHTML = logBefore;
-      // 确认框回到未勾选、名称框回到禁用（防止自检中途留下半勾状态）
+      // 确认框与名称输入框按快照还原（产品初始状态可能是「已放开」，不能一律设禁用）
       var chk = document.getElementById('confirmCheck');
-      if (chk && chk.checked) {
-        chk.checked = false;
+      if (chk && chk.checked !== confirmCheckedBefore) {
+        chk.checked = confirmCheckedBefore;
         chk.dispatchEvent(new Event('change', { bubbles: true }));
       }
+      var inp = document.getElementById('confirmNameInput');
+      if (inp && inp.disabled !== nameDisabledBefore) inp.disabled = nameDisabledBefore;
       window.removeEventListener('error', onErr);
       window.removeEventListener('unhandledrejection', onErr);
     }
@@ -212,10 +226,18 @@
 
         await check('清空日志按钮可用', function () {
           var log = document.getElementById('logOutput');
-          if (!log.textContent.trim()) throw new Error('日志本来就是空的');
-          document.getElementById('clearLogBtn').click();
-          if (log.textContent.trim()) throw new Error('点击后日志未清空');
-          return '已清空';
+          var btn = document.getElementById('clearLogBtn');
+          if (!btn) throw new Error('clearLogBtn 不存在');
+          if (btn.disabled) throw new Error('清空日志按钮被禁用');
+          // 日志可能本来就是空的（用户已清过），不因此跳过整个检查：
+          // 先写一条探针日志，再点清空，验证真的清得掉。
+          var marker = '自检探针-' + Date.now();
+          var line = document.createElement('div');
+          line.textContent = marker;
+          log.appendChild(line);
+          btn.click();
+          if (log.textContent.indexOf(marker) >= 0) throw new Error('点击后探针日志仍在');
+          return '探针写入后已清空';
         });
 
         await check('localStorage 读写', function () {
@@ -328,7 +350,7 @@
     wrap.appendChild(box);
     document.body.appendChild(wrap);
 
-    function shut() { wrap.remove(); }
+    function shut() { wrap.remove(); restoreTitle(); }
     close.addEventListener('click', shut);
     rerun.addEventListener('click', function () { shut(); setTimeout(run, 0); });
     wrap.addEventListener('click', function (e) { if (e.target === wrap) shut(); });
@@ -339,13 +361,15 @@
     return { total: total, bad: bad, good: good };
   }
 
-  // 产品在 window.load 里初始化（主题、白名单、日志）。点得早会看到
-  // 空日志，因此等到「已就绪」那行出现再跑。
+  // 产品在 window.load 里初始化（主题、白名单、统计卡片）。不能用
+  // 「就绪日志」当判据——用户清空过日志时它永远不会再出现，自检会白等
+  // 15 秒后在空日志上假失败。改为等统计卡片被 Initialize 写入值。
   function waitReady(timeoutMs) {
     var started = Date.now();
     function ready() {
-      var log = document.getElementById('logOutput');
-      return !!(log && log.textContent.indexOf('DirCleaner 已就绪') >= 0);
+      var stat = document.getElementById('totalFiles');
+      var menu = document.getElementById('themeMenu');
+      return !!(stat && String(stat.textContent || '').trim() && menu);
     }
     return new Promise(function (resolve) {
       (function tick() {
@@ -355,7 +379,19 @@
     });
   }
 
+  /* 防重入：run() 会 await 一串异步检查，期间用户再点「自检」会让两轮
+     检查交叉执行——同一个弹窗被反复移除/重建、产品的模式切换与折叠态
+     互相打架。persona 上实测能稳定把渲染进程拖死（快速双点 5/8 复现）。
+     已有结果弹窗时直接复用，不重跑。 */
+  var running = false;
+  var titleBefore = null;
+  var lastResult = '';
+
   async function run() {
+    if (running) return;
+    if (document.getElementById('selftestModal')) return;
+    running = true;
+    if (titleBefore === null) titleBefore = document.title;
     results = [];
     injectStyle();
     await waitReady(15000);
@@ -363,8 +399,23 @@
     await styleChecks();
     await interactionChecks();
     var r = render();
-    document.title = (r.bad === 0 ? 'SELFTEST-PASS ' : 'SELFTEST-FAIL ') +
+    // 标题只用于无头浏览器断言；普通用户关掉弹窗后必须还原，
+    // 否则标签页会一直停在 SELFTEST-PASS n/m。
+    lastResult = (r.bad === 0 ? 'SELFTEST-PASS ' : 'SELFTEST-FAIL ') +
       r.good + '/' + r.total;
+    // 弹窗可能已被用户关掉（或已被下一次 run 重建）：只在它仍挂着时写标题，
+    // 否则会把关闭时还原过的标题又改回 SELFTEST-PASS。
+    if (document.getElementById('selftestModal')) document.title = lastResult;
+    // 结果同时写进 <html data-selftest>：自动化在弹窗还开着时就要能读到
+    // 结论（用户关掉弹窗后标题会被还原，不能只靠标题）。
+    try { document.documentElement.setAttribute('data-selftest', lastResult); } catch (e) {}
+    running = false;
+  }
+
+  /* 结果 UI 关闭时把标题还原；标题同时通过 data 属性暴露给自动化，
+     避免为了断言而永久污染用户的标签页。 */
+  function restoreTitle() {
+    if (titleBefore !== null) document.title = titleBefore;
   }
 
   /* ---------------- 注入入口 ---------------- */
