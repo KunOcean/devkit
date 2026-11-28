@@ -34,7 +34,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 PROJECTS = ROOT / "projects"
 
-SUBPROCESS_TIMEOUT = 180
+# 单个项目的总预算。浏览器正常时每个项目 10-25 秒就能跑完；给到 90 秒
+# 是留给 CI 上冷启动 / 无 GPU 的余量。旧值 180 秒会让一个卡住的项目
+# 独吞掉整条 job 的时间。
+SUBPROCESS_TIMEOUT = 120
+# 每个项目最多尝试几次。自检里有若干与产品异步 boot 竞速的步骤，CI 上
+# 偶发一次超时不足以判定回归；连续失败才算真问题。
+MAX_ATTEMPTS = 2
 SUMMARY_RE = re.compile(r"(全部通过|有失败项)：(\d+)\s*/\s*(\d+)\s*通过")
 
 # (项目, 测试版目录, 产品文件)
@@ -54,7 +60,10 @@ GATE_PNG = bytes.fromhex(
     "1f15c4890000000d49444154789c6360606060000000050001a5f64540"
     "0000000049454e44ae426082"
 )
-GATE_TIMEOUT = 150
+# 闸门最多拖这么久就放行。/gate 是在 DOMContentLoaded 挂上的，若自检
+# 一直不写结果，Chrome 会等到 subprocess 超时；把这里设得比
+# SUBPROCESS_TIMEOUT 小，服务端线程不会比浏览器活得更久。
+GATE_TIMEOUT = 90
 
 
 class _Server(socketserver.ThreadingMixIn, http.server.HTTPServer):
@@ -117,8 +126,17 @@ def find_browser() -> str | None:
 HARNESS = r"""
 <script>
 /* 由 test_selftest_runner.py 注入：触发自检，跑完通知本地服务放行 load。
-   自检本身会把结论写进 <title>。 */
+   自检本身会把结论写进 <title>。
+
+   必须最先给 window.confirm / window.alert 打桩：在
+   `--headless=new --dump-dom` 下这两个原生对话框没有可交互的窗口，
+   渲染进程会永久阻塞（本项目此前在 devkit 行为测试里踩过同一个坑）。
+   persona 在 IndexedDB 降级后会走 Storage.onConflict → window.confirm
+   的路径，不打桩会让整页挂死、CI 只看到「浏览器超时」。 */
 (function () {
+    try { window.confirm = function () { return true; }; } catch (e) {}
+    try { window.alert = function () {}; } catch (e) {}
+    try { window.prompt = function (_msg, def) { return def == null ? '' : def; }; } catch (e) {}
     function gate() {
         var img = document.createElement('img');
         img.style.display = 'none';
@@ -226,7 +244,7 @@ def run_one(browser: str, project: str, ver: str, fname: str) -> tuple[bool, str
         dom = dom_file.read_text(encoding="utf-8", errors="replace")
         rc = proc.returncode
     except subprocess.TimeoutExpired:
-        return False, "浏览器超时", []
+        return False, "TIMEOUT", []
     finally:
         server.shutdown()
         server.server_close()
@@ -286,13 +304,23 @@ def main() -> int:
         if only and project != only:
             continue
         ran += 1
-        ok, detail, fails = run_one(browser, project, ver, fname)
         rel = f"projects/{project}/test/{ver}/{fname}"
+        ok = False
+        detail, fails = "", []
+        for attempt in range(1, MAX_ATTEMPTS + 1):
+            ok, detail, fails = run_one(browser, project, ver, fname)
+            # 只有「超时」才值得重试：断言失败是确定性的，重跑只会浪费
+            # 两倍时间并输出重复的失败项。
+            if ok or detail != "TIMEOUT":
+                break
+            if attempt < MAX_ATTEMPTS:
+                print(f"[重试] {rel}：浏览器超时，第 {attempt + 1} 次尝试")
         if ok:
             print(f"[通过] {rel}：{detail}")
         else:
             bad += 1
-            print(f"[失败] {rel}：{detail}")
+            label = "浏览器超时（已重试）" if detail == "TIMEOUT" else detail
+            print(f"[失败] {rel}：{label}")
             for name in fails:
                 print(f"        - {name}")
 

@@ -1402,6 +1402,10 @@ ${mergedText}`;
   var titleBefore = null;
   var lastResult = '';
 
+  // 必须明显短于 test_selftest_runner.py 的单项目预算（120s），
+  // 否则自检卡住时来不及输出失败结果，外部只能看到「浏览器超时」。
+  var RUN_TIMEOUT_MS = 45000;
+
   async function run() {
     if (running) return;
     if (document.getElementById('selftestModal')) return;
@@ -1409,6 +1413,44 @@ ${mergedText}`;
     if (titleBefore === null) titleBefore = document.title;
     results = [];
     injectStyle();
+    // 总超时兜底：产品 boot 或某个 await 在受限环境（如 CI 里 IndexedDB
+    // 不可用）下可能永不返回。没有这一层，自检会把整个渲染进程挂住，
+    // 用户看到的是页面卡死；CI 看到的是浏览器超时而非一条明确失败。
+    var watchdog = setTimeout(function () {
+      if (!document.getElementById('selftestModal')) {
+        fail('自检总超时', RUN_TIMEOUT_MS + 'ms 内未完成');
+        var w = render();
+        lastResult = 'SELFTEST-FAIL ' + w.good + '/' + w.total;
+        try { document.documentElement.setAttribute('data-selftest', lastResult); } catch (e) {}
+        running = false;
+      }
+    }, RUN_TIMEOUT_MS);
+    try {
+      await runChecks();
+    } finally {
+      clearTimeout(watchdog);
+    }
+  }
+
+  // 产品没有异步 boot（纯 DOM 初始化），但保留一个兜底：等 selftestBtn
+  // 出现即可，避免 mount 与产品 DOM 构建的顺序问题。
+  function waitReady(timeoutMs) {
+    var started = Date.now();
+    return new Promise(function (resolve) {
+      (function tick() {
+        if (document.getElementById('selftestBtn')) return resolve(true);
+        if (Date.now() - started > timeoutMs) return resolve(false);
+        setTimeout(tick, 100);
+      })();
+    });
+  }
+
+  async function runChecks() {
+    var ready = await waitReady(8000);
+    if (!ready) {
+      fail('产品启动就绪', '8s 内未见自检入口');
+      return;
+    }
     await structureChecks();
     await styleChecks();
     await interactionChecks();

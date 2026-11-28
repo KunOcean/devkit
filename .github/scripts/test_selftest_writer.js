@@ -333,7 +333,8 @@
     }
     return new Promise(function (resolve) {
       (function tick() {
-        if (ready() || Date.now() - started > timeoutMs) return resolve();
+        if (ready()) return resolve(true);
+        if (Date.now() - started > timeoutMs) return resolve(false);
         setTimeout(tick, 100);
       })();
     });
@@ -347,6 +348,10 @@
   var titleBefore = null;
   var lastResult = '';
 
+  // 必须明显短于 test_selftest_runner.py 的单项目预算（120s），
+  // 否则自检卡住时来不及输出失败结果，外部只能看到「浏览器超时」。
+  var RUN_TIMEOUT_MS = 45000;
+
   async function run() {
     if (running) return;
     if (document.getElementById('selftestModal')) return;
@@ -354,7 +359,33 @@
     if (titleBefore === null) titleBefore = document.title;
     results = [];
     injectStyle();
-    await waitReady(15000);
+    // 总超时兜底：产品 boot 或某个 await 在受限环境（如 CI 里 IndexedDB
+    // 不可用）下可能永不返回。没有这一层，自检会把整个渲染进程挂住，
+    // 用户看到的是页面卡死；CI 看到的是浏览器超时而非一条明确失败。
+    var watchdog = setTimeout(function () {
+      if (!document.getElementById('selftestModal')) {
+        fail('自检总超时', RUN_TIMEOUT_MS + 'ms 内未完成');
+        var w = render();
+        lastResult = 'SELFTEST-FAIL ' + w.good + '/' + w.total;
+        try { document.documentElement.setAttribute('data-selftest', lastResult); } catch (e) {}
+        running = false;
+      }
+    }, RUN_TIMEOUT_MS);
+    try {
+      await runChecks();
+    } finally {
+      clearTimeout(watchdog);
+    }
+  }
+
+  async function runChecks() {
+    // 产品 boot 未就绪时不要硬跑：后面的断言会对着空 DOM 报一堆假失败，
+    // 反而掩盖真正的原因（例如受限环境里 IndexedDB 只读/不可用）。
+    var ready = await waitReady(12000);
+    if (!ready) {
+      fail('产品启动就绪', '12s 内未见首屏数据（可能是存储不可用）');
+      return;
+    }
     await structureChecks();
     await styleChecks();
     await interactionChecks();
