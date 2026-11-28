@@ -272,9 +272,11 @@ def main() -> int:
 
     print(f"使用浏览器：{browser}")
     bad = 0
+    ran = 0
     for project, ver, fname in FILES:
         if only and project != only:
             continue
+        ran += 1
         ok, detail, fails = run_one(browser, project, ver, fname)
         rel = f"projects/{project}/test/{ver}/{fname}"
         if ok:
@@ -286,7 +288,8 @@ def main() -> int:
                 print(f"        - {name}")
 
     print()
-    print(f"自检实测完成：{len(FILES) - bad if not only else '-'} 个通过，{bad} 个失败。")
+    suffix = "（--only 只跑了部分项目）" if only else ""
+    print(f"自检实测完成：{ran - bad} / {ran} 个通过，{bad} 个失败{suffix}。")
     return 1 if bad else 0
 
 

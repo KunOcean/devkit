@@ -15,6 +15,9 @@
   · 构建清单（build_test_version.py 的 TARGETS）与磁盘上的测试版目录
     必须双向对齐：清单里的目录要存在，磁盘上的目录也要有清单条目——
     否则 --check 只校验清单内文件，手放的测试版会绕过漂移检测
+  · 测试版导航页的 HTML 骨架必须闭合（doctype / html / head / body）。
+    浏览器容错会把缺 </head> 的页面照常渲染，现有守卫全看不出来，
+    但生成脚本一旦手写拼接就会反复犯这个错
 
 与其它守卫一样只报告、不拦截退出码的语义由 CI 决定；本脚本自身
 有问题时返回 1。
@@ -90,6 +93,8 @@ def check_version_dir(project_dir: Path, ver_dir: Path) -> None:
     idx = ver_dir / "index.html"
     if not idx.exists():
         fail(rel, "缺少 index.html（Pages 目录页，缺了站点进不去）")
+    else:
+        check_html_skeleton(idx)
 
     files = sorted(ver_dir.glob("deepseek_*.html"))
     if not files:
@@ -133,12 +138,38 @@ def check_version_dir(project_dir: Path, ver_dir: Path) -> None:
             fail(rel, "index.html 未出现该版本号，卡片可能没登记")
 
 
+def check_html_skeleton(path: Path) -> None:
+    """导航页的骨架标签必须成对出现。
+
+    浏览器对缺 `</head>` 的页面照常渲染（自动补全），所以 smoke 与
+    link_check 都抓不到；但缺了说明生成脚本的字符串拼接漏了一段，
+    下次多半还会再漏。这里只检查结构性闭合，不引入 HTML 解析依赖。
+    """
+    try:
+        rel = path.relative_to(ROOT).as_posix()
+    except ValueError:
+        # 单测会传临时目录里的文件；这里只用于报告，不是否定条件
+        rel = str(path)
+    text = path.read_text(encoding="utf-8", errors="replace")
+    if not re.search(r"<!doctype\s+html", text, re.I):
+        fail(rel, "缺少 <!DOCTYPE html>")
+    for tag in ("html", "head", "body"):
+        # 用词边界避开 <header> / <body-content> 这类前缀相同的标签
+        if not re.search(rf"<{tag}(?:\s|>)", text, re.I):
+            fail(rel, f"缺少 <{tag}> 起始标签")
+        elif f"</{tag}>" not in text:
+            fail(rel, f"缺少 </{tag}> 闭合标签")
+
+
 def check_project(project_dir: Path) -> None:
     test_dir = project_dir / "test"
     if not test_dir.is_dir():
         return
-    if not (test_dir / "index.html").exists() and project_dir.name in ("devkit",):
+    idx = test_dir / "index.html"
+    if not idx.exists():
         warn(test_dir.relative_to(ROOT).as_posix(), "缺少 index.html")
+    else:
+        check_html_skeleton(idx)
 
     for ver_dir in sorted(p for p in test_dir.iterdir() if p.is_dir()):
         check_version_dir(project_dir, ver_dir)

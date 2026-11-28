@@ -129,7 +129,9 @@ SELFTEST_COUNTS = {
     "dircleaner": 15,
     "submerge-pro": 14,
 }
-SELFTEST_COUNT = 17   # 兼容旧调用（tools 里可能有按裸名字引用）
+# 未知项目的兜底值。仓库内已无按裸名字引用的调用方；保留它是为了让
+# selftest_count() 对未登记项目也有确定输出，而不是抛异常。
+SELFTEST_COUNT = 17
 
 
 def selftest_count(project: str) -> int:

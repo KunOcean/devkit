@@ -1,6 +1,6 @@
 # 仓库体检
 #
-# 五个互不依赖的检查合在一个工作流里，各自是独立 job、并行执行，
+# 多个互不依赖的检查合在一个工作流里，各自是独立 job、并行执行，
 # 失败时能一眼看出是哪一类问题：
 #   · 相对链接   link_check.py  —— HTML/Markdown 里的链接是否指向存在的文件
 #   · 文件体积   size_guard.py  —— 单文件是否异常膨胀
@@ -16,6 +16,12 @@
 #     适配这些纯函数，以及真实画布输出的尺寸与像素采样。
 #   · 起始提示词 start_prompt_test.py —— 与人设/世界观相关的 12 个「类型 ×
 #     场景」提示词组合、模式切换文案、向上展开菜单的位置。
+#   · 测试版体系 test_test_version_system.py —— 生成清单自洽、各项目
+#     命名差异（_CN 后缀 / CURRENT_VERSION 有无）、自检项数映射。
+#   · 测试版结构 test_guard.py + build_test_version.py --check ——
+#     四处一致、清单与磁盘双向对齐、HTML 骨架闭合、副本无漂移。
+#   · 内置自检实测 test_selftest_runner.py —— 无头 Chrome 里打开每个
+#     测试版跑一遍自检，逐项读 PASS / FAIL。自检脚本写坏时其它守卫全绿。
 #
 # 与 version-guard 一样默认只报告、不拦截。
 # 每个脚本本地都能用同一条命令运行。
@@ -74,6 +80,7 @@ jobs:
         run: |
           python3 .github/scripts/test_release_planning.py
           python3 .github/scripts/test_devkit_logic_helpers.py
+          python3 .github/scripts/test_test_version_system.py
 
   persona-logic:
     name: 人设逻辑单测

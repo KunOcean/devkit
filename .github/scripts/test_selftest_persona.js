@@ -101,12 +101,32 @@
         if (empty.length) throw new Error('空值：' + empty.join(', '));
         return names.join(' / ') + ' 均有值';
       }),
-      check('三栏工作区可见', function () {
-        ['sidebar', 'editor', 'result'].forEach(function (cls) {
+      check('工作区布局就绪', function () {
+        // 宽屏是三栏并存；≤699px（以及矮屏）产品切到页签模式，
+        // 一次只显示 .is-active 那一栏，另外两栏故意 display:none。
+        // 两种布局都要断言，不能只按宽屏写——否则手机用户点「自检」
+        // 会看到「.sidebar 宽度为 0」的假失败。
+        var narrow = window.matchMedia('(max-width: 699px), (max-height: 480px)').matches;
+        var panes = ['sidebar', 'editor', 'result'];
+        var nodes = panes.map(function (cls) {
           var n = $('.' + cls);
           if (!n) throw new Error('缺少 .' + cls);
+          return n;
+        });
+        if (narrow) {
+          var shown = nodes.filter(function (n) {
+            return n.getBoundingClientRect().width > 0;
+          });
+          if (shown.length !== 1) {
+            throw new Error('页签模式下应恰好一栏可见，实际 ' + shown.length);
+          }
+          var tabs = $$('.mtab');
+          if (!tabs.length) throw new Error('页签模式下缺少 .mtab');
+          return '页签模式 · ' + shown[0].getAttribute('data-pane') + ' 可见';
+        }
+        nodes.forEach(function (n) {
           if (n.getBoundingClientRect().width <= 0) {
-            throw new Error('.' + cls + ' 宽度为 0');
+            throw new Error('.' + n.getAttribute('data-pane') + ' 宽度为 0');
           }
         });
         return '侧栏 / 编辑 / 结果三栏就绪';

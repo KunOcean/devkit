@@ -129,7 +129,11 @@
       var on = opts.filter(function (o) { return o.getAttribute('aria-pressed') === 'true'; })[0];
       return on ? on.getAttribute('data-theme') : '0';
     })();
-    var logBefore = (document.getElementById('logOutput') || {}).innerHTML || '';
+    // 只记录「快照时是否已有内容」。updateWhitelistUI 是异步的，启动日志
+    // 可能晚于快照才写入；若把空串当快照无条件回写，restore 反而会擦掉
+    // 刚出现的就绪日志。所以快照为空时不动它。
+    var logNode = document.getElementById('logOutput');
+    var logBefore = logNode ? logNode.innerHTML : '';
 
     function restore() {
       var menu = document.getElementById('themeMenu');
@@ -140,9 +144,10 @@
         return o.getAttribute('data-theme') === themeBefore;
       })[0];
       if (opt) opt.click();
-      // 自检清过一次日志，这里原样放回
+      // 自检清过一次日志，这里原样放回；快照为空说明当时还没日志，
+      // 后续写入的日志属于产品自己，不能覆盖
       var log = document.getElementById('logOutput');
-      if (log) log.innerHTML = logBefore;
+      if (log && logBefore) log.innerHTML = logBefore;
       // 确认框回到未勾选、名称框回到禁用（防止自检中途留下半勾状态）
       var chk = document.getElementById('confirmCheck');
       if (chk && chk.checked) {

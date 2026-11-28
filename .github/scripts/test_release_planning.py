@@ -672,8 +672,10 @@ class TestMainLoopTargetGuard(unittest.TestCase):
         with mock.patch.dict("os.environ", {
                 "GITHUB_REPOSITORY": "r", "GITHUB_TOKEN": "t",
                 "AFTER_SHA": "sha", "BEFORE_SHA": "", "DISPATCH_TRUNK": "",
-        }), mock.patch.object(ar, "plan_auto",
-                              return_value=([("demo", "A1_V_Φ9_Test1", "test")], "x")),              mock.patch.object(ar, "release_trunk", side_effect=fake_release):
+        }), mock.patch.object(
+            ar, "plan_auto",
+            return_value=([("demo", "A1_V_Φ9_Test1", "test")], "x")
+        ), mock.patch.object(ar, "release_trunk", side_effect=fake_release):
             rc = ar.main()
 
         self.assertEqual(rc, 0)
@@ -685,9 +687,13 @@ class TestMainLoopTargetGuard(unittest.TestCase):
         with mock.patch.dict("os.environ", {
                 "GITHUB_REPOSITORY": "r", "GITHUB_TOKEN": "t",
                 "AFTER_SHA": "sha", "BEFORE_SHA": "", "DISPATCH_TRUNK": "",
-        }), mock.patch.object(ar, "plan_auto",
-                              return_value=([("demo", "NO_SUCH_Test1", "test")], "x")),              mock.patch.object(ar, "release_trunk",
-                               side_effect=lambda *a: calls.append(a) or True):
+        }), mock.patch.object(
+            ar, "plan_auto",
+            return_value=([("demo", "NO_SUCH_Test1", "test")], "x")
+        ), mock.patch.object(
+            ar, "release_trunk",
+            side_effect=lambda *a: calls.append(a) or True
+        ):
             rc = ar.main()
         self.assertEqual(rc, 0)
         self.assertEqual(calls, [])

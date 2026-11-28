@@ -13,11 +13,12 @@
   · dircleaner   → test_selftest_dircleaner.js
   · submerge-pro → test_selftest_submerge.js
 
-版本标识改写只做四处（与 devkit 既有产物一致）：
+版本标识改写只做五处（与 devkit 既有产物一致）：
   1. 文件头「版本代号：」行
   2. `<title>` 加【测试】前缀
   3. `CURRENT_VERSION`（仅部分项目有该常量）
   4. 「关于」弹窗里的版本号（仅 writer / persona 把版本号写死在正文）
+  5. 脚本头部的横幅注释（`* 项目名 · 副标题（版本号）`，同样只在这两个项目里）
 
 「当前最新版本：」结构块是主线快照，**故意保留基线值**——它记录的是
 正式版版本树，不是这份副本的身份。
@@ -53,6 +54,8 @@ SCRIPTS = Path(__file__).resolve().parent
 #   header_indent        「版本代号：」行前导空白，各项目缩进不同
 #   has_current_version  产品里是否有 `const CURRENT_VERSION = '...';`
 #   about_version_tag    关于弹窗里写死的 `<code>版本</code>`，无则为 None
+#   js_banner            脚本头部横幅的完整文本（`* 项目名 · 副标题（版本号）`），
+#                        `{v}` 由生成器替换；无则为 None
 #   append_history       产品里是否有 devkit 式 VERSION_HISTORY 数组
 #   style_block          注入到自检脚本前的附加样式（仅 devkit 既有产物
 #                        沿用；其余项目由自检脚本自建样式，保持可移植）
@@ -68,6 +71,7 @@ TARGETS = [
         "header_indent": "    ",
         "has_current_version": True,
         "about_version_tag": None,
+        "js_banner": None,
         "append_history": True,
         "style_block": (
             "<style>\n"
@@ -88,6 +92,7 @@ TARGETS = [
         "header_indent": "    ",
         "has_current_version": True,
         "about_version_tag": "<code>{v}</code>",
+        "js_banner": "* Writer · 小说编辑器（{v}）",
         "append_history": False,
         "style_block": "",
     },
@@ -102,6 +107,7 @@ TARGETS = [
         "header_indent": "    ",
         "has_current_version": True,
         "about_version_tag": "<code>{v}</code>",
+        "js_banner": "* Persona · 人设编辑器（{v}）",
         "append_history": False,
         "style_block": "",
     },
@@ -116,6 +122,7 @@ TARGETS = [
         "header_indent": "  ",
         "has_current_version": False,
         "about_version_tag": None,
+        "js_banner": None,
         "append_history": False,
         "style_block": "",
     },
@@ -131,6 +138,7 @@ TARGETS = [
         "header_indent": "    ",
         "has_current_version": False,
         "about_version_tag": None,
+        "js_banner": None,
         "append_history": False,
         "style_block": "",
     },
@@ -180,6 +188,15 @@ def build_one(spec: dict) -> tuple[Path, bytes]:
         if src.count(old) != 1:
             die(f"关于弹窗版本号锚点未唯一命中（{src.count(old)} 次）：{base}")
         src = src.replace(old, spec["about_version_tag"].format(v=test_ver), 1)
+
+    # ---- 3c. 脚本头部横幅（writer / persona） ----
+    # 单行注释里的版本号同样会让人误判副本血缘；它不影响任何行为，
+    # 但属于「文件里唯一的版本号残留」，一并改写。
+    if spec["js_banner"]:
+        old = spec["js_banner"].format(v=base_ver)
+        if src.count(old) != 1:
+            die(f"脚本横幅锚点未唯一命中（{src.count(old)} 次）：{base}")
+        src = src.replace(old, spec["js_banner"].format(v=test_ver), 1)
 
     # ---- 4. VERSION_HISTORY 追加测试版条目（仅 devkit 式结构） ----
     if spec["append_history"]:

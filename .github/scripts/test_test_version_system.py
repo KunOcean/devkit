@@ -131,6 +131,49 @@ class TestGuardRules(unittest.TestCase):
         )
 
 
+class TestHtmlSkeletonCheck(unittest.TestCase):
+    """导航页骨架检查：浏览器会容错，守卫必须自己抓。
+
+    回归点：writer / persona / dircleaner / submerge-pro 的测试版导航页
+    曾因生成脚本只切到 `</style>` 而漏掉 `</head>`，八个页面全部静默通过
+    了 link_check、smoke 与 test_guard，直到人工审查才发现。
+    """
+
+    def _check(self, body: str):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "index.html"
+            path.write_text(body, encoding="utf-8")
+            before = len(guard.problems)
+            guard.check_html_skeleton(path)
+            return guard.problems[before:]
+
+    def test_complete_page_passes(self):
+        page = (
+            "<!DOCTYPE html><html lang='zh-CN'><head><title>t</title></head>"
+            "<body><p>x</p></body></html>"
+        )
+        self.assertEqual(self._check(page), [])
+
+    def test_missing_head_close_is_reported(self):
+        page = "<!DOCTYPE html><html><head><title>t</title><body>x</body></html>"
+        problems = self._check(page)
+        self.assertTrue(any("</head>" in p for p in problems), problems)
+
+    def test_missing_doctype_is_reported(self):
+        page = "<html><head></head><body>x</body></html>"
+        problems = self._check(page)
+        self.assertTrue(any("DOCTYPE" in p for p in problems), problems)
+
+    def test_header_tag_does_not_satisfy_head(self):
+        """`<header>` 与 `<head>` 前缀相同，必须按词边界识别，不能误判通过。"""
+        page = (
+            "<!DOCTYPE html><html><header></header><body>x</body></html>"
+        )
+        problems = self._check(page)
+        self.assertTrue(any("<head> 起始标签" in p for p in problems), problems)
+
+
 class TestSelftestCounts(unittest.TestCase):
     """发布说明里的自检项数按项目取值，不再是写死的 17。"""
 
