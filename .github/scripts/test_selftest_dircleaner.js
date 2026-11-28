@@ -32,7 +32,7 @@
       if (out && typeof out.then === 'function') {
         return out.then(function (v) {
           if (v === false) fail(name, '返回 false');
-          else pass(name, typeof out === 'string' ? out : '');
+          else pass(name, typeof v === 'string' ? v : '');
         }, function (e) {
           fail(name, (e && e.message) ? e.message : String(e));
         });
@@ -204,18 +204,29 @@
         });
 
         await check('确认复选框驱动名称输入框', function () {
-          // 初始态由 updateWhitelistUI 决定（未选目录时会主动放开输入框），
-          // 因此不断言初始 disabled，只断言勾选 / 取消这一对驱动关系。
+          // 勾选后的具体行为取决于「所选目录是否已在白名单」——那需要真实的
+          // 目录句柄，DOM 上无法可靠推断（dirPath 有文字 ≠ 有句柄）。因此
+          // 断言真正的不变量：勾选后输入框要么可输入（需填目录名），要么
+          // 禁用且白名单提示条可见（免输入）。产品若两边都不成立即为回归。
           var chk = document.getElementById('confirmCheck');
           var inp = document.getElementById('confirmNameInput');
+          var hint = document.getElementById('whitelistHint');
+          if (inp.value) inp.value = '';
+
           chk.checked = true;
           chk.dispatchEvent(new Event('change', { bubbles: true }));
-          if (inp.disabled !== false) throw new Error('勾选后输入框应可输入');
+          var hintVisible = !!(hint && hint.style.display === 'block');
+          var enabled = !inp.disabled;
+          if (!enabled && !hintVisible) {
+            throw new Error('勾选后既不能输入、也没有白名单提示');
+          }
+          var mode = enabled ? '需输入名称' : '白名单免输入';
+
           chk.checked = false;
           chk.dispatchEvent(new Event('change', { bubbles: true }));
           if (inp.disabled !== true) throw new Error('取消勾选后应回到禁用');
           if (inp.value !== '') throw new Error('取消勾选后输入内容应清空');
-          return '禁用 → 可输入 → 禁用';
+          return '勾选 → ' + mode + ' → 取消后禁用';
         });
 
         await check('未选目录时开始按钮禁用', function () {

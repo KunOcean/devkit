@@ -34,7 +34,7 @@
       if (out && typeof out.then === 'function') {
         return out.then(function (v) {
           if (v === false) fail(name, '返回 false');
-          else pass(name, typeof out === 'string' ? out : '');
+          else pass(name, typeof v === 'string' ? v : '');
         }, function (e) {
           fail(name, (e && e.message) ? e.message : String(e));
         });
@@ -59,13 +59,19 @@
         if (!$('meta[name="viewport"]')) throw new Error('缺少 viewport');
         return html.getAttribute('lang');
       }),
-      check('CSP meta 存在且声明 script-src', function () {
+      check('CSP meta 存在且关键指令齐全', function () {
         var m = $('meta[http-equiv="Content-Security-Policy"]');
         if (!m) throw new Error('缺少 CSP');
-        if ((m.getAttribute('content') || '').indexOf('script-src') < 0) {
-          throw new Error('CSP 未声明 script-src');
-        }
-        return 'OK';
+        var c = m.getAttribute('content') || '';
+        // 只查子串会让 "script-src" 出现在注释或别的指令里也通过。
+        // 按指令名逐条校验，且 object-src 必须是 'none'（否则可嵌入插件）。
+        ['default-src', 'script-src', 'object-src'].forEach(function (d) {
+          if (!new RegExp('(^|;)\\s*' + d + '\\s').test(c)) {
+            throw new Error('CSP 缺少指令：' + d);
+          }
+        });
+        if (!/object-src\s+'none'/.test(c)) throw new Error("object-src 应为 'none'");
+        return '3 条关键指令齐全';
       }),
       check('关键节点 id 齐全', function () {
         var ids = ['brandBtn', 'topMeta', 'exportBtn', 'settingsBtn',
@@ -258,10 +264,16 @@
           var modal = document.getElementById('memoryModal');
           if (!modal.classList.contains('open')) throw new Error('memoryModal 未打开');
           var meta = (document.getElementById('memoryMeta') || {}).textContent || '';
-          if (!meta.trim()) throw new Error('记忆元信息为空');
+          // 产品两个分支的文案都非空（空记忆也写「还没有记忆…」），
+          // 只断言非空等于恒过。这里要求能识别出是哪一个分支。
+          var hasMem = /已导入\s*\d+\s*条/.test(meta);
+          var empty = meta.indexOf('还没有记忆') >= 0;
+          if (!hasMem && !empty) throw new Error('记忆元信息不可识别：' + meta.slice(0, 40));
+          var preview = (document.getElementById('memoryPreview') || {}).textContent || '';
+          if (!preview.trim()) throw new Error('记忆预览为空');
           var closer = modal.querySelector('[data-close]');
           if (closer) closer.click();
-          return meta.slice(0, 24);
+          return (hasMem ? '有记忆' : '空记忆') + ' · ' + meta.slice(0, 20);
         });
 
         await check('localStorage 读写', function () {

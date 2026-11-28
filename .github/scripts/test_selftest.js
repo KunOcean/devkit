@@ -140,7 +140,15 @@
     var openModalsBefore = $$('.modal.visible').map(function (m) { return m.id; });
 
     function restore() {
-      document.body.className = bodyClassBefore;
+      // 只撤销自检自己加过的类，不用快照整体覆盖：自检期间产品可能
+      // 异步加上新类（如主题、抽屉），整体覆盖会把它们抹掉。
+      var now = (document.body.className || '').split(/\s+/).filter(Boolean);
+      var before = bodyClassBefore.split(/\s+/).filter(Boolean);
+      var selfAdded = now.filter(function (c) { return before.indexOf(c) < 0; });
+      // 自检只在「切换主题」时给 body 换 theme-* 类，其余类一律不碰
+      selfAdded = selfAdded.filter(function (c) { return c.indexOf('theme-') === 0; });
+      selfAdded.forEach(function (c) { document.body.classList.remove(c); });
+      before.forEach(function (c) { document.body.classList.add(c); });
       // 主题：按快照重新点一次，让产品自己的状态与 DOM 同步
       var target = themeCheckedBefore[0];
       if (target) {

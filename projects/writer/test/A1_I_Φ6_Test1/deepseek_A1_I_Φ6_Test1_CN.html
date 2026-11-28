@@ -3450,7 +3450,7 @@
       if (out && typeof out.then === 'function') {
         return out.then(function (v) {
           if (v === false) fail(name, '返回 false');
-          else pass(name, typeof out === 'string' ? out : '');
+          else pass(name, typeof v === 'string' ? v : '');
         }, function (e) {
           fail(name, (e && e.message) ? e.message : String(e));
         });
@@ -3475,13 +3475,19 @@
         if (!$('meta[name="viewport"]')) throw new Error('缺少 viewport');
         return html.getAttribute('lang');
       }),
-      check('CSP meta 存在且声明 script-src', function () {
+      check('CSP meta 存在且关键指令齐全', function () {
         var m = $('meta[http-equiv="Content-Security-Policy"]');
         if (!m) throw new Error('缺少 CSP');
-        if ((m.getAttribute('content') || '').indexOf('script-src') < 0) {
-          throw new Error('CSP 未声明 script-src');
-        }
-        return 'OK';
+        var c = m.getAttribute('content') || '';
+        // 只查子串会让 "script-src" 出现在注释或别的指令里也通过。
+        // 按指令名逐条校验，且 object-src 必须是 'none'（否则可嵌入插件）。
+        ['default-src', 'script-src', 'object-src'].forEach(function (d) {
+          if (!new RegExp('(^|;)\\s*' + d + '\\s').test(c)) {
+            throw new Error('CSP 缺少指令：' + d);
+          }
+        });
+        if (!/object-src\s+'none'/.test(c)) throw new Error("object-src 应为 'none'");
+        return '3 条关键指令齐全';
       }),
       check('关键节点 id 齐全', function () {
         var ids = ['brandBtn', 'bookSelect', 'newBookBtn', 'manuscript', 'chapterTree',
