@@ -86,8 +86,10 @@
         return ids.length + ' 项已初始化';
       }),
       check('许可证声明存在', function () {
-        var html = document.documentElement.innerHTML || '';
-        if (html.indexOf('本程序是自由软件') < 0) throw new Error('未找到 GPLv3 声明');
+        // 只取可见文本：整页 innerHTML 会把脚本与样式也算进去，
+        // 既慢又可能匹配到注释里的字样。
+        var txt = document.body ? (document.body.textContent || '') : '';
+        if (txt.indexOf('本程序是自由软件') < 0) throw new Error('未找到 GPLv3 声明');
         return 'GPLv3 声明存在';
       })
     ]);
@@ -413,17 +415,21 @@
     // 总超时兜底：产品 boot 或某个 await 在受限环境（如 CI 里 IndexedDB
     // 不可用）下可能永不返回。没有这一层，自检会把整个渲染进程挂住，
     // 用户看到的是页面卡死；CI 看到的是浏览器超时而非一条明确失败。
+    var timedOut = false;
     var watchdog = setTimeout(function () {
-      if (!document.getElementById('selftestModal')) {
-        fail('自检总超时', RUN_TIMEOUT_MS + 'ms 内未完成');
-        var w = render();
-        lastResult = 'SELFTEST-FAIL ' + w.good + '/' + w.total;
-        try { document.documentElement.setAttribute('data-selftest', lastResult); } catch (e) {}
-        running = false;
-      }
+      if (document.getElementById('selftestModal')) return;
+      timedOut = true;
+      fail('自检总超时', RUN_TIMEOUT_MS + 'ms 内未完成');
+      var w = render();
+      lastResult = 'SELFTEST-FAIL ' + w.good + '/' + w.total;
+      try { document.documentElement.setAttribute('data-selftest', lastResult); } catch (e) {}
+      running = false;
     }, RUN_TIMEOUT_MS);
     try {
       await runChecks();
+      // 已经超时并渲染过结果：runChecks 的后续完成不能再渲染一次，
+      // 否则用户会看到弹窗闪一下（旧弹窗被移除、新弹窗重建）。
+      if (timedOut) return;
     } finally {
       clearTimeout(watchdog);
     }

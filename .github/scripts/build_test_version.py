@@ -148,9 +148,16 @@ MARK_START = "<!-- TEST_SELFTEST_START -->"
 MARK_END = "<!-- TEST_SELFTEST_END -->"
 
 
+class BuildError(Exception):
+    """单个测试版生成失败（锚点缺失、基线不存在等）。
+
+    调用方按项目捕获并继续处理其余项目：一次运行要能列出全部问题，
+    而不是修好第一个才看见第二个。
+    """
+
+
 def die(msg: str) -> None:
-    print(f"[问题] {msg}", file=sys.stderr)
-    raise SystemExit(1)
+    raise BuildError(msg)
 
 
 def build_one(spec: dict) -> tuple[Path, bytes]:
@@ -242,8 +249,18 @@ def main() -> int:
     check_only = "--check" in sys.argv
 
     drift = 0
+    failed: list[str] = []
     for spec in TARGETS:
-        out, data = build_one(spec)
+        project = spec["project"]
+        try:
+            out, data = build_one(spec)
+        except BuildError as e:
+            # 单个项目失败不打断整批：其余项目照常生成/校验，
+            # 最后统一汇总，一次运行能暴露全部问题。
+            print(f"[问题] {project}：{e}")
+            failed.append(project)
+            continue
+
         rel = out.relative_to(ROOT).as_posix()
 
         if check_only:
@@ -260,6 +277,11 @@ def main() -> int:
             out.parent.mkdir(parents=True, exist_ok=True)
             out.write_bytes(data)
             print(f"[写入] {rel}（{len(data) // 1024} KB）")
+
+    if failed:
+        print()
+        print(f"检查完成：{len(failed)} 个项目无法生成（{'、'.join(failed)}），{drift} 个测试版需要重新生成。")
+        return 1
 
     if drift:
         print()

@@ -246,6 +246,10 @@ def run_one(browser: str, project: str, ver: str, fname: str) -> tuple[bool, str
     except subprocess.TimeoutExpired:
         return False, "TIMEOUT", []
     finally:
+        # 放行仍阻塞在 /gate 上的 handler 线程：超时返回时自检没写结果，
+        # done 不会被 set，那个线程会一直等到 GATE_TIMEOUT（90s）才放行，
+        # 重试时就会同时挂着两个。这里主动置位，让它们立刻结束。
+        done.set()
         server.shutdown()
         server.server_close()
         shutil.rmtree(tmp, ignore_errors=True)

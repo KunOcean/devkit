@@ -352,32 +352,77 @@
     wrap.setAttribute('aria-label', '内置自检结果');
 
     var summaryColor = bad === 0 ? '#7ee787' : '#ff8a3d';
-    var rows = results.map(function (r) {
-      return '<li style="display:flex;gap:8px;align-items:flex-start;padding:3px 0">'
-        + '<span style="flex:0 0 42px;font-family:monospace;color:' + (r.ok ? '#7ee787' : '#ff7b72') + '">'
-        + (r.ok ? 'PASS' : 'FAIL') + '</span>'
-        + '<span style="flex:1">' + r.name
-        + (r.detail ? '<span style="color:#8b9aa6"> — ' + r.detail + '</span>' : '')
-        + '</span></li>';
-    }).join('');
 
-    wrap.innerHTML =
-      '<div class="modal-content" style="max-width:680px">'
-      + '<div class="modal-header">'
-      + '<h2 style="margin:0;font-size:1rem">内置自检</h2>'
-      + '<button class="close-btn" type="button" aria-label="关闭" id="selftestClose">×</button>'
-      + '</div>'
-      + '<div class="modal-body">'
-      + '<p style="margin:0 0 12px;color:' + summaryColor + ';font-weight:600">'
-      + (bad === 0 ? '全部通过：' : '有失败项：') + good + ' / ' + total + ' 通过</p>'
-      + '<ul style="list-style:none;margin:0;padding:0;font-size:0.85rem">' + rows + '</ul>'
-      + '<p style="margin:14px 0 0;color:#8b9aa6;font-size:0.78rem">'
-      + '这是测试版专属的自检，不改动任何用户数据；开跑前的界面状态已自动恢复。</p>'
-      + '</div>'
-      + '<div class="modal-footer" style="display:flex;gap:8px;justify-content:flex-end;padding:12px 20px">'
-      + '<button class="btn" type="button" id="selftestRerun">重新运行</button>'
-      + '</div>'
-      + '</div>';
+    // 结构用 DOM API 建，结果文本一律走 textContent。当前 detail 都来自
+    // 固定文本或数字，但用 innerHTML 拼接等于给未来留一个注入面，且
+    // 其余四个项目已统一用 textContent。
+    var content = document.createElement('div');
+    content.className = 'modal-content';
+    content.style.maxWidth = '680px';
+
+    var header = document.createElement('div');
+    header.className = 'modal-header';
+    var h2 = document.createElement('h2');
+    h2.style.cssText = 'margin:0;font-size:1rem';
+    h2.textContent = '内置自检';
+    var closeBtn = document.createElement('button');
+    closeBtn.className = 'close-btn';
+    closeBtn.type = 'button';
+    closeBtn.setAttribute('aria-label', '关闭');
+    closeBtn.id = 'selftestClose';
+    closeBtn.textContent = '×';
+    header.appendChild(h2);
+    header.appendChild(closeBtn);
+
+    var body = document.createElement('div');
+    body.className = 'modal-body';
+    var summary = document.createElement('p');
+    summary.style.cssText = 'margin:0 0 12px;font-weight:600;color:' + summaryColor;
+    summary.textContent = (bad === 0 ? '全部通过：' : '有失败项：')
+      + good + ' / ' + total + ' 通过';
+    var ul = document.createElement('ul');
+    ul.style.cssText = 'list-style:none;margin:0;padding:0;font-size:0.85rem';
+    results.forEach(function (r) {
+      var li = document.createElement('li');
+      li.style.cssText = 'display:flex;gap:8px;align-items:flex-start;padding:3px 0';
+      var tag = document.createElement('span');
+      tag.style.cssText = 'flex:0 0 42px;font-family:monospace;color:'
+        + (r.ok ? '#7ee787' : '#ff7b72');
+      tag.textContent = r.ok ? 'PASS' : 'FAIL';
+      var txt = document.createElement('span');
+      txt.style.flex = '1';
+      txt.textContent = r.name;
+      if (r.detail) {
+        var detail = document.createElement('span');
+        detail.style.color = '#8b9aa6';
+        detail.textContent = ' — ' + r.detail;
+        txt.appendChild(detail);
+      }
+      li.appendChild(tag);
+      li.appendChild(txt);
+      ul.appendChild(li);
+    });
+    var note = document.createElement('p');
+    note.style.cssText = 'margin:14px 0 0;color:#8b9aa6;font-size:0.78rem';
+    note.textContent = '这是测试版专属的自检，不改动任何用户数据；开跑前的界面状态已自动恢复。';
+    body.appendChild(summary);
+    body.appendChild(ul);
+    body.appendChild(note);
+
+    var footer = document.createElement('div');
+    footer.className = 'modal-footer';
+    footer.style.cssText = 'display:flex;gap:8px;justify-content:flex-end;padding:12px 20px';
+    var rerunBtn = document.createElement('button');
+    rerunBtn.className = 'btn';
+    rerunBtn.type = 'button';
+    rerunBtn.id = 'selftestRerun';
+    rerunBtn.textContent = '重新运行';
+    footer.appendChild(rerunBtn);
+
+    content.appendChild(header);
+    content.appendChild(body);
+    content.appendChild(footer);
+    wrap.appendChild(content);
 
     document.body.appendChild(wrap);
 
@@ -401,13 +446,46 @@
   var titleBefore = null;
   var lastResult = '';
 
+  /* 产品 boot 是异步的（Storage.init → 读库 → 首次运行建项目/页签），
+     检查本身全同步，但页签列表没渲染出来时断言会对着空 DOM 假失败。
+     这里用 setTimeout 让出事件循环，就绪后再跑检查，与其余四个项目口径一致。 */
+  function waitReady(timeoutMs) {
+    var started = Date.now();
+    function ready() {
+      var tabs = document.getElementById('tabList');
+      var projects = document.getElementById('projectBar');
+      return !!(tabs && tabs.children.length &&
+                projects && projects.children.length);
+    }
+    return new Promise(function (resolve) {
+      (function tick() {
+        if (ready()) return resolve(true);
+        if (Date.now() - started > timeoutMs) return resolve(false);
+        setTimeout(tick, 100);
+      })();
+    });
+  }
+
   function run() {
     if (document.getElementById('selftestModal')) return;
     if (titleBefore === null) titleBefore = document.title;
     results = [];
-    structureChecks();
-    styleChecks();
-    interactionChecks();
+    waitReady(8000).then(function (ready) {
+      if (!ready) {
+        fail('产品启动就绪', '8s 内未见首屏页签（可能是存储不可用）');
+      } else {
+        structureChecks();
+        styleChecks();
+        interactionChecks();
+      }
+      finishRun();
+    }, function (e) {
+      fail('自检异常', (e && e.message) ? e.message : String(e));
+      finishRun();
+    });
+  }
+
+  function finishRun() {
     var r = render();
     // 供无头浏览器断言用
     lastResult = (r.bad === 0 ? 'SELFTEST-PASS ' : 'SELFTEST-FAIL ')

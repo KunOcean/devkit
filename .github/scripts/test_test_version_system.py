@@ -33,18 +33,17 @@ import make_release_notes as notes  # noqa: E402
 import test_guard as guard  # noqa: E402
 
 
-def _load_builder():
+def _load_module(name: str, filename: str):
     """文件名以 test_ 开头，unittest discover 会把它当测试模块导入；
-    测试版生成器同理需要按路径加载，不能直接 import。"""
-    spec = importlib.util.spec_from_file_location(
-        "build_test_version", SCRIPTS / "build_test_version.py"
-    )
+    生成器与 runner 同理需要按路径加载，不能直接 import。"""
+    spec = importlib.util.spec_from_file_location(name, SCRIPTS / filename)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
 
 
-builder = _load_builder()
+builder = _load_module("build_test_version", "build_test_version.py")
+runner = _load_module("test_selftest_runner", "test_selftest_runner.py")
 
 
 class TestTargetsManifest(unittest.TestCase):
@@ -98,6 +97,26 @@ class TestTargetsManifest(unittest.TestCase):
                     base,
                 )
 
+    def test_runner_covers_every_target(self):
+        """runner 的 FILES 必须与生成器 TARGETS 一一对应。
+
+        两份清单是分开维护的：新增项目时只改一处，自检实测会静默跳过
+        那个项目，CI 仍然全绿——这是最危险的一类漏检。
+        """
+        targets = {(t["project"], t["out_dir"].name) for t in builder.TARGETS}
+        files = {(p, v) for p, v, _ in runner.FILES}
+        self.assertEqual(targets - files, set(), "TARGETS 里有、FILES 里没有")
+        self.assertEqual(files - targets, set(), "FILES 里有、TARGETS 里没有")
+
+    def test_runner_filenames_match_targets(self):
+        """runner 里写的文件名必须等于生成器实际产出的文件名。"""
+        by_project = {p: (v, f) for p, v, f in runner.FILES}
+        for t in builder.TARGETS:
+            with self.subTest(project=t["project"]):
+                ver, fname = by_project[t["project"]]
+                self.assertEqual(ver, t["test_name"])
+                self.assertEqual(fname, f"deepseek_{t['test_version']}.html")
+
 
 class TestGuardRules(unittest.TestCase):
     """test_guard 的项目级豁免，与 version_guard 的口径保持一致。"""
@@ -140,13 +159,12 @@ class TestHtmlSkeletonCheck(unittest.TestCase):
     """
 
     def _check(self, body: str):
+        """直接断言返回值，不读模块级 problems——避免测试间互相污染。"""
         import tempfile
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "index.html"
             path.write_text(body, encoding="utf-8")
-            before = len(guard.problems)
-            guard.check_html_skeleton(path)
-            return guard.problems[before:]
+            return guard.check_html_skeleton(path)
 
     def test_complete_page_passes(self):
         page = (

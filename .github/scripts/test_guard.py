@@ -94,7 +94,7 @@ def check_version_dir(project_dir: Path, ver_dir: Path) -> None:
     if not idx.exists():
         fail(rel, "缺少 index.html（Pages 目录页，缺了站点进不去）")
     else:
-        check_html_skeleton(idx)
+        problems.extend(check_html_skeleton(idx))
 
     files = sorted(ver_dir.glob("deepseek_*.html"))
     if not files:
@@ -138,27 +138,32 @@ def check_version_dir(project_dir: Path, ver_dir: Path) -> None:
             fail(rel, "index.html 未出现该版本号，卡片可能没登记")
 
 
-def check_html_skeleton(path: Path) -> None:
-    """导航页的骨架标签必须成对出现。
+def check_html_skeleton(path: Path) -> list[str]:
+    """导航页的骨架标签必须成对出现，返回问题描述列表。
 
     浏览器对缺 `</head>` 的页面照常渲染（自动补全），所以 smoke 与
     link_check 都抓不到；但缺了说明生成脚本的字符串拼接漏了一段，
     下次多半还会再漏。这里只检查结构性闭合，不引入 HTML 解析依赖。
+
+    返回列表而不是直接写全局 problems：单测可以直接断言返回值，
+    不依赖执行顺序或全局状态。
     """
     try:
         rel = path.relative_to(ROOT).as_posix()
     except ValueError:
         # 单测会传临时目录里的文件；这里只用于报告，不是否定条件
         rel = str(path)
+    out: list[str] = []
     text = path.read_text(encoding="utf-8", errors="replace")
     if not re.search(r"<!doctype\s+html", text, re.I):
-        fail(rel, "缺少 <!DOCTYPE html>")
+        out.append(f"{rel}: 缺少 <!DOCTYPE html>")
     for tag in ("html", "head", "body"):
         # 用词边界避开 <header> / <body-content> 这类前缀相同的标签
         if not re.search(rf"<{tag}(?:\s|>)", text, re.I):
-            fail(rel, f"缺少 <{tag}> 起始标签")
+            out.append(f"{rel}: 缺少 <{tag}> 起始标签")
         elif f"</{tag}>" not in text:
-            fail(rel, f"缺少 </{tag}> 闭合标签")
+            out.append(f"{rel}: 缺少 </{tag}> 闭合标签")
+    return out
 
 
 def check_project(project_dir: Path) -> None:
@@ -169,7 +174,7 @@ def check_project(project_dir: Path) -> None:
     if not idx.exists():
         warn(test_dir.relative_to(ROOT).as_posix(), "缺少 index.html")
     else:
-        check_html_skeleton(idx)
+        problems.extend(check_html_skeleton(idx))
 
     for ver_dir in sorted(p for p in test_dir.iterdir() if p.is_dir()):
         check_version_dir(project_dir, ver_dir)
